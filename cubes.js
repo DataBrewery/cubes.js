@@ -18,16 +18,23 @@
             params.url = this.url + "model"
             console.log("loading cubes model from " + params.url)
 
-            options.success = this._parse_model
+            var success = options.success;
+            var server = this;
+            options.success = function(resp, status, xhr) {
+                model = server._parse_model(resp, xhr)
+                if (!model) return false;
+                if (success) success(model, resp);
+            };
+
             return $.ajax(_.extend(params, options));
         },
-
         _parse_model: function(object){
-            console.log("model loaded")
+            console.log("model loaded:")
             console.log(object)
-            this.model = new cubes.Model(object)
-            console.log("dimension CPV:")
-            console.log(this.model.dimension("cpv"))
+            model = new cubes.Model(object);
+            console.log("model created:")
+            console.log(model)
+            return model;
         }
     })
     
@@ -40,10 +47,11 @@
         parse: function(desc) {
             model = this;
             
-            !desc.name || (model.name = desc.name)
-            !desc.label || (model.label = desc.label)
-            !desc.description || (model.description = desc.description)
-            !desc.locale || (model.locale = desc.locale)
+            !desc.name || (model.name = desc.name);
+            !desc.label || (model.label = desc.label);
+            !desc.description || (model.description = desc.description);
+            !desc.locale || (model.locale = desc.locale);
+            model.locales = desc.locales;
 
             model.dimensions = []
 
@@ -53,6 +61,16 @@
                     model.dimensions.push(dim)
                 }
             }
+
+            model.cubes = []
+
+            if(desc.cubes) {
+                for(i in desc.cubes) {
+                    cube = new cubes.Cube(desc.cubes[i], this)
+                    model.cubes.push(cube)
+                }
+            }
+
         },
         
         dimension: function(name) {
@@ -60,6 +78,36 @@
             return _.find(this.dimensions, function(dim){return dim.name == name;})
         }
         
+    })
+
+    cubes.Cube = function(obj, model){
+        this.parse(obj, model)
+    }
+    
+    _.extend(cubes.Cube.prototype, {
+        parse: function(desc, model) {
+            this.name = desc.name;
+            !desc.label || (this.label = desc.label);
+            !desc.description || (this.description = desc.description);
+            !desc.key || (this.key = desc.key);
+
+            this.measures = []
+
+            for(i in desc.measures) {
+                obj = new cubes.Attribute(desc.measures[i])
+                this.measures.push(obj)
+            }
+
+            this.details = []
+
+            for(i in desc.details) {
+                obj = new cubes.Attribute(desc.details[i])
+                this.details.push(obj)
+            }
+
+            this.dimensions = _.map(desc.dimensions, function(name) {return model.dimension(name)} )
+        }
+
     })
     
     cubes.Dimension = function(obj){
