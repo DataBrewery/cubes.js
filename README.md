@@ -20,8 +20,18 @@ Not yet implemented:
 
 * cubes.Browser - aggregation browser
 * cubes.Cell - browsing context (has multiple cuts)
-* cubes.Cut
+* cubes.PointCut
 
+Note: This is my very first JavaScript code and I am learning the language while writing the framework. I
+am accepting any constructive criticism how to make the code better.
+
+Requirements
+============
+
+cubes.js requires following JavaScript frameworks:
+
+* underscore.js
+* jQuery
 
 Author
 ======
