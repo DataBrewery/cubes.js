@@ -76,11 +76,17 @@
         dimension: function(name) {
             // Return a dimension with given name
             return _.find(this.dimensions, function(dim){return dim.name == name;})
+        },
+
+        cube: function(name) {
+            // Return a dimension with given name
+            return _.find(this.cubes, function(obj){return obj.name == name;})
         }
         
     })
 
     cubes.Cube = function(obj, model){
+        this.url = null;
         this.parse(obj, model)
     }
     
@@ -191,8 +197,6 @@
                     level.attributes.push(attr)
                 }
             }
-            
-            
         },
         
         key: function(desc) {
@@ -221,6 +225,88 @@
             return dimension + "." + this.name
         }
     });
+
+    cubes.Browser = function(cube, url){
+        this.cube = cube
+        this.url = url
+    };
+
+    _.extend(cubes.Browser.prototype, {
+        full_cube: function(dimension) {
+            return new cubes.Cell(self.cube)
+        },
+        aggregate: function(cell) {
+            var params = {dataType : 'json', type : "GET"};
+
+            params.url = this.url + "/cube/" + this.cube.name + "/aggregate"
+            if(cell) {
+                params.url += "?cut=" + cell
+            };
+
+            // FIXME: continue here
+            console.log("AGGREGATE URL: " + params.url)
+            
+            var options = {
+                success: function(obj) {
+                    console.log("aggregation success")
+                    console.log(obj)
+                },
+                error: function(obj) {
+                    console.log("aggregation error")
+                    console.log(obj)
+                }
+            }
+            return $.ajax(_.extend(params, options));
+        }
+    });
+
+    cubes.Cell = function(cube){
+        this.cube = cube;
+        this.cuts = [];
+    };
+
+    _.extend(cubes.Cell.prototype, {
+        slice: function(dimension, path) {
+            cuts = _.reject(cuts, function(cut) {cut.dimension == dimension} )
+            if(path) {
+                cut = cubes.PointCut(dimension, path)
+                cuts.push(cut)
+            }
+            cell = cubes.Cell(self.cube);
+            cell.cuts = cuts;
+            return cell;
+        },
+
+        toString:function() {
+            strings = _.map(this.cuts, function(cut) {return cut.toString()});
+            string = strings.join(cubes.CUT_STRING_SEPARATOR);
+            return string;
+        }
+    });
+
+    cubes.PointCut = function(dimension, path){
+        this.dimension = dimension;
+        this.path = path;
+    };
+
+    _.extend(cubes.PointCut.prototype, {
+        toString: function() {
+            path_str = cubes.string_from_path(this.path)
+            string = this.dimension.name + cubes.DIMENSION_STRING_SEPARATOR + path_str
+            
+            return string
+        }
+    });
+
+    cubes.DIMENSION_STRING_SEPARATOR = ":";
+    cubes.CUT_STRING_SEPARATOR = "|";
+    cubes.PATH_STRING_SEPARATOR = ",";
+
+    cubes.string_from_path = function(path){
+        fixed_path = _.map(path, function(element) {return element || ""})
+        string = fixed_path.join(cubes.PATH_STRING_SEPARATOR)
+        return string;
+    }
 
     root['cubes'] = cubes;
 }).call(this);
