@@ -7,39 +7,74 @@
     cubes.Server = function(url){ 
         this.url = url;
         this.model = null;
+        
+        // Server callbacks
+        this.onConnect = null;
+        this.onError = null;
     }
     
-    _.extend(cubes.Server.prototype, {
-        load_model: function(options){
+    _.extend( cubes.Server.prototype, {
+        
+        _request: function(path, params, options) {
             options || (options = {})
-            var params = {dataType : 'json', type : "GET"};
-            // params.url = getUrl(model) || urlError();
 
-            params.url = this.url + "model"
-            console.log("loading cubes model from " + params.url)
+            var request_params = {dataType : 'json', type : "GET"};
 
-            var success = options.success;
-            var server = this;
+            request_params.url = this.url + path;
+            console.log("cubes request: " + request_params.url)
+
+            return $.ajax(_.extend(request_params, options));
+        },
+        
+        connect: function(url) {
+            var self = this;
+            
+            this.url = url
+            
+            options = {error: this._onError}
+
             options.success = function(resp, status, xhr) {
-                model = server._parse_model(resp, xhr)
-                if (!model) return false;
-                if (success) success(model, resp);
+                self.server_version = resp.server_version;
+                self.api_version = resp.api_version;
+                console.log("slicer connected: version=" + self.server_version +
+                                " API=" + self.api_version)
+                self._load_model()
             };
 
-            return $.ajax(_.extend(params, options));
+            this._request('version', null, options);
         },
-        _parse_model: function(object){
-            console.log("model loaded:")
-            console.log(object)
+        _load_model: function() {
+            var self = this;
+            
+            options = {error: this._onError}
+
+            options.success = function(resp, status, xhr) {
+                model = self._parse_model(resp)
+
+                // FIXME: handle model parse failure
+                if (!model) return false;
+                if (server.onConnect) server.onConnect(model);
+            };
+
+            return this._request('model', null, options);
+        },
+        
+        _onError: function(xhr, textStatus) {
+            if (server.onError)
+                server.onError(xhr, textStatus)
+            else
+                console.log("cubes server error: " + textStatus)
+        },
+        
+        _parse_model: function(object) {
+            console.log("parsing loaded model")
             model = new cubes.Model(object);
-            console.log("model created:")
-            console.log(model)
             return model;
         }
     })
     
     cubes.Model = function(obj){
-        // desc - model description
+        // obj - model description
         this.parse(obj)
     }
 
@@ -47,10 +82,10 @@
         parse: function(desc) {
             model = this;
             
-            !desc.name || (model.name = desc.name);
-            !desc.label || (model.label = desc.label);
+            !desc.name        || (model.name = desc.name);
+            !desc.label       || (model.label = desc.label);
             !desc.description || (model.description = desc.description);
-            !desc.locale || (model.locale = desc.locale);
+            !desc.locale      || (model.locale = desc.locale);
             model.locales = desc.locales;
 
             model.dimensions = []
