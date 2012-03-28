@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="style.css">
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+    <script type="text/javascript" src="js/bootstrap-alert.js"></script>
+    <script type="text/javascript" src="js/underscore-min.js"></script>
+    <script type="text/javascript" src="js/handlebars-1.0.0.beta.6.js"></script>
+
+    <script type="text/javascript" src="../cubes.js"></script>
+    <script type="text/javascript" src="app.js"></script>
+</head>
+
+<body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Cubes Slicer</a>
+          <ul class="nav">
+            <li><a href="#info-tab" data-toggle="tab">Info</a></li>
+            <li><a href="#model-tab" data-toggle="tab">Model</a></li>
+            <li><a href="#browser-tab" data-toggle="tab">Browser</a></li>
+          </ul>
+            <form class="navbar-form pull-right" id="slicer_url_form">
+              <input type="text" class="span4" id="slicer_url">
+              <a class="btn btn-success" id="connect" href="#"><i class="icon-refresh icon-white"></i> Connect</a>
+            </form> 
+        </div> <!-- container -->
+      </div> <!-- inner -->
+    </div> <!-- navbar -->
+    
+
+<div class="container">
+
+<div class="tab-content">
+  <div class="tab-pane" id="info-tab"></div>
+  <div class="tab-pane" id="model-tab"></div>
+  <div class="tab-pane" id="browser-tab"></div>
+</div>
+
+</div> <!-- container -->
+
+<script id="info-view" type="text/x-handlebars-template">
+<h1>Server Info</h1>
+<table class="table table-bordered">
+<tr><th>Server version</th><td>{{server_version}}</td></tr>
+<tr><th>API version</th><td>{{api_version}}</td></tr>
+</table>
+
+<h1>Cubes</h1>
+<small>Found {{cube_count}} cubes.</small>
+
+<table class="table table-striped">
+<thead>
+<tr><th>Label</th><th>Name</th><th>Description</th></tr>
+</thead>
+<tbody>
+{{#each cubes}}
+<tr><td>{{label}}</td><td>{{name}}</td><td>{{description}}</td></tr>
+{{/each}}
+</tbody>
+</table>
+</script>
+
+</body>
+
+</html>
