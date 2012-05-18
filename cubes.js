@@ -1,23 +1,31 @@
 (function(){
  
-//Variables and functions go here.
+    // Variables and functions go here.
     var root = this;
     var cubes = { };
 
-    cubes.Server = function(url){ 
+    cubes.Server = function(url){
+        
+        // Represents Cubes Slicer Server connection.
+        // 
+        // Attributes:
+        // 
+        // * `url`: Slicer API URL * `model`: downloaded model from the slicer URL
+        // 
+        // Callbacks:
+        // 
+        // * `onConnect`: called when successful connection is established and when
+        //                model is loaded
+        // * `onError`: called when an error occures during connection process
+
         this.url = url;
         this.model = null;
-        
-        // Server callbacks
-        this.onConnect = null;
-        this.onError = null;
     }
     
     _.extend( cubes.Server.prototype, {
-        
-        _request: function(path, params, options) {
-            options || (options = {})
-
+    
+        // Build a slicer HTTP request
+        _request: function(path, params, options) { options || (options = {})
             var request_params = {dataType : 'json', type : "GET"};
 
             request_params.url = this.url + path;
@@ -26,11 +34,38 @@
             return $.ajax(_.extend(request_params, options));
         },
         
+        query: function(query, cube, args, callback) {
+            var params = {dataType : 'json', type : "GET"};
+
+            if(cube.hasOwnProperty("name"))
+                cube_name = cube.name
+            else
+                cube_name = cube
+            
+            params.url = this.url + "/cube/" + cube_name + "/" + query
+            params.data = args
+
+            if(args && args.cut)
+                params.data.cut = params.data.cut.toString()
+
+            params.success = function(obj) {
+                console.log("browser query ok", obj)
+                callback(obj)
+            }
+            params.error = function(obj) {
+                console.log("browser query error", obj)
+                // FIXME: Some error handler here
+            }
+
+            console.log("cubes query: ", params.url, params.data)
+            return $.ajax(params)
+        },
+        
         connect: function(url) {
             var self = this;
-            
+
             this.url = url
-            
+
             options = {error: this._onError}
 
             options.success = function(resp, status, xhr) {
@@ -43,29 +78,32 @@
 
             this._request('version', null, options);
         },
+
         _load_model: function() {
             var self = this;
-            
+
             options = {error: this._onError}
 
             options.success = function(resp, status, xhr) {
                 model = self._parse_model(resp)
 
                 // FIXME: handle model parse failure
-                if (!model) return false;
-                if (server.onConnect) server.onConnect(model);
+                if (!model)
+                    return false;
+                if (server.onConnect)
+                    server.onConnect(model);
             };
 
             return this._request('model', null, options);
         },
-        
+
         _onError: function(xhr, textStatus) {
             if (server.onError)
                 server.onError(xhr, textStatus)
             else
                 console.log("cubes server error: " + textStatus)
         },
-        
+
         _parse_model: function(object) {
             console.log("parsing loaded model")
             model = new cubes.Model(object);
@@ -80,7 +118,7 @@
 
     _.extend(cubes.Model.prototype, {
         parse: function(desc) {
-            model = this;
+            var model = this;
             
             !desc.name        || (model.name = desc.name);
             !desc.label       || (model.label = desc.label);
@@ -92,7 +130,7 @@
 
             if(desc.dimensions) {
                 for(i in desc.dimensions) {
-                    dim = new cubes.Dimension(desc.dimensions[i])
+                    var dim = new cubes.Dimension(desc.dimensions[i])
                     model.dimensions.push(dim)
                 }
             }
@@ -101,7 +139,7 @@
 
             if(desc.cubes) {
                 for(i in desc.cubes) {
-                    cube = new cubes.Cube(desc.cubes[i], this)
+                    var cube = new cubes.Cube(desc.cubes[i], this)
                     model.cubes.push(cube)
                 }
             }
@@ -135,18 +173,22 @@
             this.measures = []
 
             for(i in desc.measures) {
-                obj = new cubes.Attribute(desc.measures[i])
+                var obj = new cubes.Attribute(desc.measures[i])
                 this.measures.push(obj)
             }
 
             this.details = []
 
             for(i in desc.details) {
-                obj = new cubes.Attribute(desc.details[i])
+                var obj = new cubes.Attribute(desc.details[i])
                 this.details.push(obj)
             }
 
             this.dimensions = _.map(desc.dimensions, function(name) {return model.dimension(name)} )
+        },
+        dimension: function(name) {
+            // Return a dimension with given name
+            return _.find(this.dimensions, function(obj){return obj.name == obj;})
         }
 
     })
@@ -157,16 +199,17 @@
     
     _.extend(cubes.Dimension.prototype, {
         parse: function(desc) {
-            dim = this;
+            var dim = this;
             dim.name = desc.name;
             !desc.label || (dim.label = desc.label);
             !desc.description || (dim.description = desc.description);
+            !desc.default_hierarchy_name || (dim.default_hierarchy_name = desc.default_hierarchy_name);
 
             dim.levels = {};
 
             if(desc.levels) {
                 for(i in desc.levels) {
-                    level = new cubes.Level(desc.levels[i])
+                    var level = new cubes.Level(desc.levels[i])
                     dim.levels[level.name] = level
                 }
             };
@@ -175,7 +218,7 @@
 
             if(desc.hierarchies) {
                 for(i in desc.hierarchies) {
-                    hier = new cubes.Hierarchy(desc.hierarchies[i], this)
+                    var hier = new cubes.Hierarchy(desc.hierarchies[i], this)
                     dim.hierarchies[hier.name] = hier
                 }
             }
@@ -187,6 +230,15 @@
         },
         toString: function(desc) {
             return this.name;
+        },
+        display_label: function() {
+            return this.label || this.name;
+        },
+        hierarchy: function(name) {
+            if(name)
+                return this.hierarchies[name]
+            else
+                return this.hierarchies[default_hierarchy_name]
         }
     } )
 
@@ -196,7 +248,7 @@
 
     _.extend(cubes.Hierarchy.prototype, {
         parse: function(desc, dim) {
-            hier = this;
+            var hier = this;
             hier.name = desc.name
             !desc.label || (hier.label = desc.label)
             !desc.description || (hier.description = desc.description)
@@ -217,7 +269,7 @@
 
     _.extend(cubes.Level.prototype, {
         parse: function(desc) {
-            level = this;
+            var level = this;
             level.name = desc.name
             !desc.label || (level.label = desc.label)
             !desc.description || (level.description = desc.description)
@@ -228,7 +280,7 @@
 
             if(desc.attributes) {
                 for(i in desc.attributes) {
-                    attr = new cubes.Attribute(desc.attributes[i])
+                    var attr = new cubes.Attribute(desc.attributes[i])
                     level.attributes.push(attr)
                 }
             }
@@ -261,37 +313,25 @@
         }
     });
 
-    cubes.Browser = function(cube, url){
+    cubes.Browser = function(server, cube){
         this.cube = cube
-        this.url = url
+        this.server = server
     };
 
     _.extend(cubes.Browser.prototype, {
         full_cube: function(dimension) {
             return new cubes.Cell(self.cube)
         },
-        aggregate: function(cell) {
-            var params = {dataType : 'json', type : "GET"};
+        aggregate: function(cell, drilldown, callback) {
+            var args = {}
 
-            params.url = this.url + "/cube/" + this.cube.name + "/aggregate"
-            if(cell) {
-                params.url += "?cut=" + cell
-            };
+            if (cell) args.cut = cell
+            if (drilldown) args.drilldown = drilldown
 
-            // FIXME: continue here
-            console.log("AGGREGATE URL: " + params.url)
-            
-            var options = {
-                success: function(obj) {
-                    console.log("aggregation success")
-                    console.log(obj)
-                },
-                error: function(obj) {
-                    console.log("aggregation error")
-                    console.log(obj)
-                }
-            }
-            return $.ajax(_.extend(params, options));
+            this.server.query("aggregate", this.cube, args, callback)
+        },
+        full_cube: function(){
+            return new cubes.Cell(this)
         }
     });
 
@@ -302,20 +342,36 @@
 
     _.extend(cubes.Cell.prototype, {
         slice: function(dimension, path) {
-            cuts = _.reject(cuts, function(cut) {cut.dimension == dimension} )
+            var cuts = _.reject(cuts, function(cut) {cut.dimension == dimension} )
             if(path) {
                 cut = cubes.PointCut(dimension, path)
                 cuts.push(cut)
             }
-            cell = cubes.Cell(self.cube);
+            var cell = cubes.Cell(self.cube);
             cell.cuts = cuts;
             return cell;
         },
 
         toString:function() {
-            strings = _.map(this.cuts, function(cut) {return cut.toString()});
-            string = strings.join(cubes.CUT_STRING_SEPARATOR);
-            return string;
+            var strings
+            var result
+
+            if(this.cuts && this.cuts.length >= 1)
+                strings = _.map(this.cuts, function(cut) {
+                                                return cut.toString()
+                                            })
+            else
+                strings = []
+            
+            result = strings.join(cubes.CUT_STRING_SEPARATOR);
+                
+            return result;
+        },
+        
+        cut_for_dimension: function(name) {
+            return _.find(this.cuts, function(cut){
+                return cut.dimension.name == name
+            })
         }
     });
 
@@ -326,20 +382,25 @@
 
     _.extend(cubes.PointCut.prototype, {
         toString: function() {
-            path_str = cubes.string_from_path(this.path)
-            string = this.dimension.name + cubes.DIMENSION_STRING_SEPARATOR + path_str
+            var path_str = cubes.string_from_path(this.path)
+            var string = this.dimension.name + cubes.DIMENSION_STRING_SEPARATOR + path_str
             
             return string
         }
     });
+
+    cubes.SetCut = function(dimension, paths){
+        this.dimension = dimension;
+        this.paths = paths;
+    };
 
     cubes.DIMENSION_STRING_SEPARATOR = ":";
     cubes.CUT_STRING_SEPARATOR = "|";
     cubes.PATH_STRING_SEPARATOR = ",";
 
     cubes.string_from_path = function(path){
-        fixed_path = _.map(path, function(element) {return element || ""})
-        string = fixed_path.join(cubes.PATH_STRING_SEPARATOR)
+        var fixed_path = _.map(path, function(element) {return element || ""})
+        var string = fixed_path.join(cubes.PATH_STRING_SEPARATOR)
         return string;
     }
 
