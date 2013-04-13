@@ -2,18 +2,14 @@ $(function(){ /* jQuery.ready */
 
 // Initialization
 
-var server = new cubes.Server()
-window.server = server
+var server = new cubes.Server($.ajax);
+window.server = server;
 
 var connect = function(){
     url = $("#slicer_url").val()
-    if(url[url.length-1] != '/') {
-        url += '/'
-    }
     console.log("connecting to slicer at URL: " + url)
 
-    server.onConnect = model_loaded;
-    server.connect(url)
+    server.connect(url, model_loaded);
 };
 
 
