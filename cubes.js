@@ -61,15 +61,12 @@
             params.data.cut = params.data.cut.toString();
 
         params.success = function(obj) {
-            // console.log("browser query ok", obj);
             callback(obj);
         };
         params.error = function(obj) {
-            // console.log("browser query error", obj);
             // FIXME: Some error handler here
         };
 
-        // console.log("cubes query: ", path, params.data);
         return this.ajaxRequest(params);
     };
 
@@ -83,11 +80,8 @@
         options.url = self.url + 'version';
 
         options.success = function(resp, status, xhr) {
-            // console.log(resp);
             self.server_version = resp.server_version;
             self.api_version = resp.api_version;
-            // console.log("slicer connected: version=" + self.server_version +
-            //                 " API=" + self.api_version);
             self.load_model(callback);
         };
 
@@ -132,6 +126,7 @@
         !desc.label       || (model.label = desc.label);
         !desc.description || (model.description = desc.description);
         !desc.locale      || (model.locale = desc.locale);
+        !desc.info || (model.info = desc.info);
         model.locales = desc.locales;
 
         model.dimensions = [];
@@ -176,6 +171,7 @@
         !desc.label || (this.label = desc.label);
         !desc.description || (this.description = desc.description);
         !desc.key || (this.key = desc.key);
+        !desc.info || (this.info = desc.info);
 
         this.measures = [];
 
@@ -211,6 +207,7 @@
         !desc.label || (dim.label = desc.label);
         !desc.description || (dim.description = desc.description);
         !desc.default_hierarchy_name || (dim.default_hierarchy_name = desc.default_hierarchy_name);
+        !desc.info || (dim.info = desc.info);
 
         dim.levels = {};
 
@@ -262,6 +259,7 @@
         hier.name = desc.name
         !desc.label || (hier.label = desc.label)
         !desc.description || (hier.description = desc.description)
+        !desc.info || (hier.info = desc.info);
 
         hier._level_names = [];
 
@@ -291,6 +289,7 @@
         level.name = desc.name
         !desc.label || (level.label = desc.label)
         !desc.description || (level.description = desc.description)
+        !desc.info || (level.info = desc.info);
         level._key = desc.key
         level._label_attribute = desc.label_attribute
 
@@ -353,12 +352,9 @@
         this.cuts = [];
     };
 
-    cubes.Cell.prototype.slice = function(dimension, path) {
-        var cuts = _.filter(this.cuts, function(cut) {cut.dimension != dimension} );
-        if(path) {
-            cut = new cubes.PointCut(dimension, path);
-            cuts.push(cut);
-        }
+    cubes.Cell.prototype.slice = function(new_cut) {
+        var cuts = _.filter(this.cuts, function(cut) {cut.dimension != new_cut.dimension} );
+        cuts.push(new_cut);
         var cell = new cubes.Cell(this.cube);
         cell.cuts = cuts;
         return cell;
@@ -374,7 +370,7 @@
         });
     };
 
-    cubes.PointCut = function(dimension, hierarchy, path, invert){
+    cubes.PointCut = function(dimension, hierarchy, path, invert) {
         this.dimension = dimension;
         this.hierarchy = hierarchy;
         this.path = path;
@@ -390,7 +386,7 @@
             path_str;
     };
 
-    cubes.SetCut = function(dimension, hierarchy, paths){
+    cubes.SetCut = function(dimension, hierarchy, paths, invert) {
         this.dimension = dimension;
         this.hierarchy = hierarchy;
         this.paths = paths;

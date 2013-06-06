@@ -37,7 +37,8 @@ suite.addBatch({
     'Browser': {
           topic: function() { var s = new cubes.Server(AjaxHandler); s.connect("http://foo.com/cubes"); return new cubes.Browser(s, s.model.cubes[0]); },
           'full cube': function(b) { assert.strictEqual(b.full_cube().cube, b.cube); assert.deepEqual(b.full_cube().cuts, []) },
-          'can slice': function(b) { assert.instanceOf(b.full_cube().slice('cohort_attr', ['paid', 'direct']).cuts[0], cubes.PointCut); }
+          'can slice': function(b) { assert.instanceOf(b.full_cube().slice(new cubes.PointCut('cohort_attr', ['paid', 'direct'])).cuts[0], cubes.PointCut); },
+          'can re-slice': function(b) { assert.strictEqual(b.full_cube().slice(new cubes.PointCut('cohort_attr', ['paid', 'direct'])).slice(new cubes.PointCut('cohort_attr', ['unpaid'])).cuts.length, 1); }
     }
   }
 });
