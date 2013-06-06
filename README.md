@@ -33,10 +33,9 @@ am accepting any constructive criticism how to make the code better.
 Requirements
 ============
 
-cubes.js requires following JavaScript frameworks:
-
-* underscore.js
-* jQuery
+Squarespace's version of cubes.js does not require any external library, neither underscore.js nor jQuery.
+However, to use the query() function or to fetch the model JSON, you must provide a jQuery-compatible ajax function
+to the cubes.Server constructor.
 
 Author
 ======
