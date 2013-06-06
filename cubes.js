@@ -336,7 +336,7 @@
     };
 
     cubes.Browser.prototype.full_cube = function(dimension) {
-        return new cubes.Cell(self.cube);
+        return new cubes.Cell(this.cube);
     };
 
     cubes.Browser.prototype.aggregate = function(cell, drilldown, callback) {
@@ -356,10 +356,10 @@
     cubes.Cell.prototype.slice = function(dimension, path) {
         var cuts = _.filter(this.cuts, function(cut) {cut.dimension != dimension} );
         if(path) {
-            cut = cubes.PointCut(dimension, path);
+            cut = new cubes.PointCut(dimension, path);
             cuts.push(cut);
         }
-        var cell = cubes.Cell(self.cube);
+        var cell = new cubes.Cell(this.cube);
         cell.cuts = cuts;
         return cell;
     };
