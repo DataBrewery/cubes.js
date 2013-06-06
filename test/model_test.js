@@ -12,4 +12,4 @@ suite.addBatch({
   }
 });
 
-suite.run();
+suite.export(module);

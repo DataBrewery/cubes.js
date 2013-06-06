@@ -43,7 +43,9 @@ Tests
 Tests are provided in the test/ folder. Use node and the vows node module to run them:
 
     $ npm install
-    $ node test/*.js
+    $ vows
+
+The vows tool will run all the .js test files it finds in the test/ folder.
 
 Author
 ======
