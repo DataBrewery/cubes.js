@@ -61,15 +61,15 @@
             params.data.cut = params.data.cut.toString();
 
         params.success = function(obj) {
-            console.log("browser query ok", obj);
+            // console.log("browser query ok", obj);
             callback(obj);
         };
         params.error = function(obj) {
-            console.log("browser query error", obj);
+            // console.log("browser query error", obj);
             // FIXME: Some error handler here
         };
 
-        console.log("cubes query: ", path, params.data);
+        // console.log("cubes query: ", path, params.data);
         return this.ajaxRequest(params);
     };
 
@@ -83,11 +83,11 @@
         options.url = self.url + 'version';
 
         options.success = function(resp, status, xhr) {
-            console.log(resp);
+            // console.log(resp);
             self.server_version = resp.server_version;
             self.api_version = resp.api_version;
-            console.log("slicer connected: version=" + self.server_version +
-                            " API=" + self.api_version);
+            // console.log("slicer connected: version=" + self.server_version +
+            //                 " API=" + self.api_version);
             self.load_model(callback);
         };
 
