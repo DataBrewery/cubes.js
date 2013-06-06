@@ -37,6 +37,14 @@ Squarespace's version of cubes.js does not require any external library, neither
 However, to use the query() function or to fetch the model JSON, you must provide a jQuery-compatible ajax function
 to the cubes.Server constructor.
 
+Tests
+=====
+
+Tests are provided in the test/ folder. Use node and the vows node module to run them:
+
+    $ npm install
+    $ node test/*.js
+
 Author
 ======
 

@@ -1,0 +1,11 @@
+{
+        "name": "cubes.js",
+        "version": "0.1.0",
+        "author": "Robin Thomas <rthomas@squarespace.com>",
+        "dependencies": {
+           "vows": ">=0.7.0"
+        },
+        "engine": {
+           "node": ">=0.7"
+        }
+}
