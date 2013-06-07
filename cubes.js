@@ -391,7 +391,7 @@
         var path_str = cubes.string_from_path(this.path);
         return (this.invert ? cubes.CUT_INVERSION_CHAR : "") +
             this.dimension +
-            this.hierarchy +
+            ( this.hierarchy ? ( cubes.HIERARCHY_PREFIX_CHAR + this.hierarchy ) : '' ) +
             cubes.DIMENSION_STRING_SEPARATOR_CHAR +
             path_str;
     };
@@ -407,7 +407,7 @@
         var path_str = _.map(this.paths, cubes.string_from_path).join(cubes.SET_CUT_SEPARATOR_CHAR);
         return (this.invert ? cubes.CUT_INVERSION_CHAR : "") +
             this.dimension +
-            this.hierarchy +
+            ( this.hierarchy ? ( cubes.HIERARCHY_PREFIX_CHAR + this.hierarchy ) : '' ) +
             cubes.DIMENSION_STRING_SEPARATOR_CHAR +
             path_str;
     };
@@ -427,7 +427,7 @@
         var path_str = cubes.string_from_path(this.from_path) + cubes.RANGE_CUT_SEPARATOR_CHAR + cubes.string_from_path(this.to_path);
         return (this.invert ? cubes.CUT_INVERSION_CHAR : "") +
             this.dimension +
-            this.hierarchy +
+            ( this.hierarchy ? ( cubes.HIERARCHY_PREFIX_CHAR + this.hierarchy ) : '' ) +
             cubes.DIMENSION_STRING_SEPARATOR_CHAR +
             path_str;
     };
@@ -450,16 +450,24 @@
     cubes.PATH_PART_ESCAPE_PATTERN = /([\\!|:;,-])/g;
     cubes.PATH_PART_UNESCAPE_PATTERN = /\\([\\!|;,-])/g;
 
+    cubes.NULL_PART_STRING = '__null__';
+
     cubes._escape_path_part = function(part) {
-        return part.replace(cubes.PATH_PART_ESCAPE_PATTERN, function(match, b1) { return "\\" + b1; });
+        if ( part == null ) {
+          return cubes.NULL_PART_STRING;
+        }
+        return part.toString().replace(cubes.PATH_PART_ESCAPE_PATTERN, function(match, b1) { return "\\" + b1; });
     };
 
     cubes._unescape_path_part = function(part) {
+        if ( part === cubes.NULL_PART_STRING ) {
+          return null;
+        }
         return part.replace(cubes.PATH_PART_UNESCAPE_PATTERN, function(match, b1) { return b1; });
     };
 
     cubes.string_from_path = function(path){
-        var fixed_path = _.map(path || [], function(element) {return cubes._escape_path_part(element || "");});
+        var fixed_path = _.map(path || [], function(element) {return cubes._escape_path_part(element);});
         return fixed_path.join(cubes.PATH_STRING_SEPARATOR_CHAR);
     };
 
