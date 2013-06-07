@@ -213,7 +213,7 @@
 
         if(desc.levels) {
             for(i in desc.levels) {
-                var level = new cubes.Level(desc.levels[i]);
+                var level = new cubes.Level(dim.name, desc.levels[i]);
                 dim.levels[level.name] = level;
             }
         }
@@ -256,7 +256,7 @@
         var hier = this;
         var i;
 
-        hier.name = desc.name
+        hier.name = desc.name;
         !desc.label || (hier.label = desc.label)
         !desc.description || (hier.description = desc.description)
         !desc.info || (hier.info = desc.info);
@@ -278,20 +278,21 @@
         return this.label || this.name;
     };
 
-    cubes.Level = function(obj){
-        this.parse(obj);
+    cubes.Level = function(dimension_name, obj){
+        this.parse(dimension_name, obj);
     };
 
-    cubes.Level.prototype.parse = function(desc) {
+    cubes.Level.prototype.parse = function(dimension_name, desc) {
         var level = this;
         var i;
 
-        level.name = desc.name
-        !desc.label || (level.label = desc.label)
-        !desc.description || (level.description = desc.description)
+        level.dimension_name = dimension_name;
+        level.name = desc.name;
+        !desc.label || (level.label = desc.label);
+        !desc.description || (level.description = desc.description);
         !desc.info || (level.info = desc.info);
-        level._key = desc.key
-        level._label_attribute = desc.label_attribute
+        level._key = desc.key;
+        level._label_attribute = desc.label_attribute;
 
         level.attributes = [];
 
@@ -318,9 +319,18 @@
         return this.name;
     };
 
-    cubes.Level.prototype.full_name = function(dimension) {
-        return dimension + "." + this.name;
+    cubes.Level.prototype.display_name = function() {
+      return this.label || this.name;
     };
+
+    cubes.Level.prototype.full_name = function() {
+        return this.dimension_name + cubes.ATTRIBUTE_STRING_SEPARATOR_CHAR + this.name;
+    };
+
+    cubes.Level.prototype.full_name_for_drilldown = function() {
+        return this.dimension_name + cubes.DIMENSION_STRING_SEPARATOR_CHAR + this.name;
+    };
+
 
     cubes.Attribute = function(obj){
         this.name = obj.name;
@@ -425,6 +435,7 @@
     cubes.CUT_INVERSION_CHAR = "!";
     cubes.CUT_STRING_SEPARATOR_CHAR = "|";
     cubes.DIMENSION_STRING_SEPARATOR_CHAR = ":";
+    cubes.ATTRIBUTE_STRING_SEPARATOR_CHAR = ".";
     cubes.HIERARCHY_PREFIX_CHAR = "@";
     cubes.PATH_STRING_SEPARATOR_CHAR = ",";
     cubes.RANGE_CUT_SEPARATOR_CHAR = "-";
