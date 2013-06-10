@@ -363,8 +363,21 @@
     };
 
     cubes.Cell.prototype.slice = function(new_cut) {
-        var cuts = _.filter(this.cuts, function(cut) {cut.dimension != new_cut.dimension} );
-        cuts.push(new_cut);
+        var cuts = [];
+        var new_cut_pushed = false;
+        for (var i = 0; i < this.cuts.length; i++) {
+          var c = this.cuts[i];
+          if ( c.dimension == new_cut.dimension ){
+            cuts.push(new_cut);
+            new_cut_pushed = true;
+          }
+          else {
+            cuts.push(c);
+          }
+        }
+        if ( ! new_cut_pushed ) {
+          cuts.push(new_cut);
+        }
         var cell = new cubes.Cell(this.cube);
         cell.cuts = cuts;
         return cell;
