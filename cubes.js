@@ -394,6 +394,7 @@
     };
 
     cubes.PointCut = function(dimension, hierarchy, path, invert) {
+        this.type = 'point';
         this.dimension = dimension;
         this.hierarchy = hierarchy;
         this.path = path;
@@ -410,6 +411,7 @@
     };
 
     cubes.SetCut = function(dimension, hierarchy, paths, invert) {
+        this.type = 'set';
         this.dimension = dimension;
         this.hierarchy = hierarchy;
         this.paths = paths;
@@ -426,6 +428,7 @@
     };
 
     cubes.RangeCut = function(dimension, hierarchy, from_path, to_path, invert){
+        this.type = 'range';
         this.dimension = dimension;
         this.hierarchy = hierarchy;
         if ( from_path === null && to_path === null ) {
@@ -454,16 +457,34 @@
     cubes.RANGE_CUT_SEPARATOR_CHAR = "-";
     cubes.SET_CUT_SEPARATOR_CHAR = ";";
 
-    cubes.CUT_STRING_SEPARATOR = /(?!\\)\|/;
-    cubes.DIMENSION_STRING_SEPARATOR = /(?!\\):/;
-    cubes.PATH_STRING_SEPARATOR = /(?!\\),/;
-    cubes.RANGE_CUT_SEPARATOR = /(?!\\)-/;
-    cubes.SET_CUT_SEPARATOR = /(?!\\);/;
+    cubes.CUT_STRING_SEPARATOR = /\|/g;
+    cubes.DIMENSION_STRING_SEPARATOR = /:/g;
+    cubes.PATH_STRING_SEPARATOR = /,/g;
+    cubes.RANGE_CUT_SEPARATOR = /-/g;
+    cubes.SET_CUT_SEPARATOR = /;/g;
 
     cubes.PATH_PART_ESCAPE_PATTERN = /([\\!|:;,-])/g;
-    cubes.PATH_PART_UNESCAPE_PATTERN = /\\([\\!|;,-])/g;
+    cubes.PATH_PART_UNESCAPE_PATTERN = /\\([\\!|:;,-])/g;
 
+    cubes.CUT_PARSE_REGEXP = new RegExp("^(" + cubes.CUT_INVERSION_CHAR + "?)(\\w+)(?:" + cubes.HIERARCHY_PREFIX_CHAR + "(\w+))?" + cubes.DIMENSION_STRING_SEPARATOR_CHAR + "(.*)$")
     cubes.NULL_PART_STRING = '__null__';
+
+    cubes._split_with_negative_lookbehind = function(input, regex, lb) {
+      var string = input;
+      var match;
+      var splits = [];
+      while ((match = regex.exec(string)) != null) {
+          if ( string.substr(match.index - lb.length, lb.length) != lb ) {
+            splits.push(string.substring(0, match.index));
+            string = string.substring(Math.min(match.index + match[0].length, string.length), string.length);
+          }
+          else {
+            // match has the lookbehind, must exclude
+          }
+      }
+      splits.push(string);
+      return splits;
+    }
 
     cubes._escape_path_part = function(part) {
         if ( part == null ) {
@@ -480,9 +501,50 @@
     };
 
     cubes.string_from_path = function(path){
-        var fixed_path = _.map(path || [], function(element) {return cubes._escape_path_part(element);});
-        return fixed_path.join(cubes.PATH_STRING_SEPARATOR_CHAR);
+        var fixed_path = _.map(path || [], function(element) {return cubes._escape_path_part(element);}).join(cubes.PATH_STRING_SEPARATOR_CHAR);
+        return fixed_path;
+    };
+
+    cubes.path_from_string = function(path_string) {
+        var paths = cubes._split_with_negative_lookbehind(path_string, cubes.PATH_STRING_SEPARATOR, '\\');
+        var parsed = _.map(paths || [], function(e) { return cubes._unescape_path_part(e); });
+        return parsed;
+    };
+
+    cubes.cut_from_string = function(cut_string) {
+        // parse out invert, dim_name, hierarchy, and path thingy
+        var match = cubes.CUT_PARSE_REGEXP.exec(cut_string);
+        if (!match) {
+          return null;
+        }
+        var invert = !!(match[1]), 
+            dim_name = match[2],
+            hierarchy = match[3] || null,
+            path_thingy = match[4];
+        // if path thingy splits on set separator, make a SetCut.
+        var splits = cubes._split_with_negative_lookbehind(path_thingy, cubes.SET_CUT_SEPARATOR, '\\');
+        if ( splits.length > 1 ) {
+          return new cubes.SetCut(dim_name, hierarchy, _.map(splits, function(ss) { return cubes.path_from_string(ss); }), invert);
+        }
+        // else if path thingy splits into two on range separator, make a RangeCut.
+        splits = cubes._split_with_negative_lookbehind(path_thingy, cubes.RANGE_CUT_SEPARATOR, '\\');
+        if ( splits.length == 2 ) {
+          var from_path = splits[0] ? cubes.path_from_string(splits[0]) : null;
+          var to_path = splits[1] ? cubes.path_from_string(splits[1]) : null;
+          return new cubes.RangeCut(dim_name, hierarchy, from_path, to_path, invert);
+        }
+        // else it's a PointCut.
+        return new cubes.PointCut(dim_name, hierarchy, cubes.path_from_string(path_thingy), invert);
+    };
+
+    cubes.cell_from_string = function(cube, cut_param_value) {
+        var cut_strings = cubes._split_with_negative_lookbehind(cut_param_value, cubes.CUT_STRING_SEPARATOR, '\\');
+        var cuts = _.map(cut_strings || [], function(e) { return cubes.cut_from_string(e); });
+        var cell = new cubes.Cell(cube);
+        cell.cuts = cuts;
+        return cell;
     };
 
     root['cubes'] = cubes;
+
 }).call(this);

@@ -33,6 +33,24 @@ suite.addBatch({
     'can cut by attr with wacky characters': function(model) { 
       assert.strictEqual("!attr:Bicky\\-Boo\\|\\:Foo", new cubes.Cell(model.cubes[0]).slice(new cubes.PointCut('attr', null, ["Bicky-Boo|:Foo"], true)).toString()); 
     },
+    'point cut round trip': function(model) { 
+      assert.strictEqual("!attr:unpaid,direct", cubes.cell_from_string(model.cubes[0], new cubes.Cell(model.cubes[0]).slice(new cubes.PointCut('attr', null, ["unpaid", "direct"], true)).toString()).toString()); 
+    },
+    'set cut round trip': function(model) { 
+      assert.strictEqual("!attr:unpaid,direct;paid,pnb", cubes.cell_from_string(model.cubes[0], new cubes.Cell(model.cubes[0]).slice(new cubes.SetCut('attr', null, [["unpaid", "direct"], ["paid", "pnb"]], true)).toString()).toString()); 
+    },
+    'range cut round trip': function(model) { 
+      assert.strictEqual("!attr:unpaid,direct-", cubes.cell_from_string(model.cubes[0], new cubes.Cell(model.cubes[0]).slice(new cubes.RangeCut('attr', null, ["unpaid", "direct"], null, true)).toString()).toString()); 
+    },
+    'range cut round trip 2': function(model) { 
+      assert.strictEqual("!attr:-unpaid,direct", cubes.cell_from_string(model.cubes[0], new cubes.Cell(model.cubes[0]).slice(new cubes.RangeCut('attr', null, null, ["unpaid", "direct"], true)).toString()).toString()); 
+    },
+    'range cut round trip 3': function(model) { 
+      assert.strictEqual("!attr:paid-unpaid,direct", cubes.cell_from_string(model.cubes[0], new cubes.Cell(model.cubes[0]).slice(new cubes.RangeCut('attr', null, ["paid"], ["unpaid", "direct"], true)).toString()).toString()); 
+    },
+    'all wacky characters work round-trip in point cut': function(model) { 
+      assert.strictEqual("!attr:Bicky\\-Boo\\|\\:Foo", cubes.cell_from_string(model.cubes[0], new cubes.Cell(model.cubes[0]).slice(new cubes.PointCut('attr', null, ["Bicky-Boo|:Foo"], true)).toString()).toString()); 
+    },
     'can cut with a null value': function(model) { 
       assert.strictEqual("cohort_attr:pbr,__null__", new cubes.Cell(model.cubes[0]).slice(new cubes.PointCut('cohort_attr', null, ['pbr', null])).toString()); 
     },
