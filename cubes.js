@@ -537,11 +537,15 @@
         return new cubes.PointCut(dim_name, hierarchy, cubes.path_from_string(path_thingy), invert);
     };
 
-    cubes.cell_from_string = function(cube, cut_param_value) {
+    cubes.cuts_from_string = function(cut_param_value) {
         var cut_strings = cubes._split_with_negative_lookbehind(cut_param_value, cubes.CUT_STRING_SEPARATOR, '\\');
         var cuts = _.map(cut_strings || [], function(e) { return cubes.cut_from_string(e); });
+        return cuts;
+    };
+
+    cubes.cell_from_string = function(cube, cut_param_value) {
         var cell = new cubes.Cell(cube);
-        cell.cuts = cuts;
+        cell.cuts = cubes.cuts_from_string(cut_param_value);
         return cell;
     };
 
