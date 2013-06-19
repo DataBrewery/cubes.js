@@ -15,20 +15,18 @@ Namespaces and object prototypes:
 * cubes.Hierarchy
 * cubes.Level
 * cubes.Attribute
-
-Not yet fully implemented:
-
-* cubes.Browser - aggregation browser
 * cubes.Cell - browsing context (has multiple cuts)
 * cubes.PointCut
-
-Not yet implemented:
-
 * cubes.SetCut
 * cubes.RangeCut
 
-Note: This is my very first JavaScript code and I am learning the language while writing the framework. I
-am accepting any constructive criticism how to make the code better.
+This library supports the extended features of cuts -- inversion, full escaping of sensitive characters --
+as implemented in the Squarespace fork of Cubes at https://github.com/Squarespace/cubes .
+
+Not yet fully implemented:
+
+* cubes.Browser - aggregation browser, only supports aggregate() so far
+
 
 Requirements
 ============
@@ -53,7 +51,6 @@ Author
 Stefan Urbanek, <stefan.urbanek@gmail.com>, @Stiivi, December 2011
 
 Follow @DataBrewery on Twitter for updates.
-
 
 License
 =======
