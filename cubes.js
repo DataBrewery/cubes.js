@@ -192,7 +192,7 @@
 
     cubes.Cube.prototype.dimension = function(name) {
         // Return a dimension with given name
-        return _.find(this.dimensions, function(obj){return obj.name == obj;});
+        return _.find(this.dimensions, function(obj){return obj.name == name;});
     };
 
     cubes.Dimension = function(obj){
