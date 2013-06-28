@@ -21,8 +21,15 @@
     };
 
     _.find = function(ary, f) {
-      for (var i = 0; i < ary.length; i++) {
-        if ( f(ary[i]) ) return ary[i];
+      var i;
+      if (Object.prototype.toString.call(ary) === '[object Array]') {
+        for (i = 0; i < ary.length; i++) {
+          if ( f(ary[i]) ) return ary[i];
+        }
+      } else {
+        for (i in ary) {
+          if ( f(ary[i]) ) return ary[i];
+        }
       }
       return null;
     };
@@ -230,7 +237,7 @@
 
     cubes.Dimension.prototype.level = function(name) {
         // Return a level with given name
-        return _.find(this.levels, function(obj){return obj.name == obj;});
+        return _.find(this.levels, function(obj){return obj.name == name;});
     };
 
     cubes.Dimension.prototype.toString = function(desc) {
