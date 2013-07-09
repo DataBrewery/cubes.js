@@ -216,12 +216,12 @@
         !desc.default_hierarchy_name || (dim.default_hierarchy_name = desc.default_hierarchy_name);
         !desc.info || (dim.info = desc.info);
 
-        dim.levels = {};
+        dim.levels = [];
 
         if(desc.levels) {
             for(i in desc.levels) {
                 var level = new cubes.Level(dim.name, desc.levels[i]);
-                dim.levels[level.name] = level;
+                dim.levels.push(level);
             }
         }
 
