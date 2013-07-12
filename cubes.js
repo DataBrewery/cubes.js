@@ -180,26 +180,40 @@
         !desc.key || (this.key = desc.key);
         !desc.info || (this.info = desc.info);
 
-        this.measures = [];
+        this.measures = _.map(desc.measures || [], function(m) { return new cubes.Attribute(m); });
+        this.details = _.map(desc.details || [], function(m) { return new cubes.Attribute(m); });
 
-        for(i in desc.measures) {
-            obj = new cubes.Attribute(desc.measures[i]);
-            this.measures.push(obj);
-        }
-
-        this.details = [];
-
-        for(i in desc.details) {
-            obj = new cubes.Attribute(desc.details[i]);
-            this.details.push(obj);
-        }
-
-        this.dimensions = _.map(desc.dimensions, function(name) {return model.dimension(name);} );
+        this.dimensions = _.map(desc.dimensions || [], function(name) {return model.dimension(name);} );
     };
 
     cubes.Cube.prototype.dimension = function(name) {
         // Return a dimension with given name
         return _.find(this.dimensions, function(obj){return obj.name == name;});
+    };
+
+    cubes.Cube.prototype.measure_info = function() {
+        var minfo = [];
+        var calc_measures = { 'sma': true, 'wma': true };
+
+        for ( var i = 0; i < this.measures.length; i++ ) {
+          var meas = this.measures[i];
+          var meas_label = meas.label || meas.name;
+          // get the first non-calculated agg.
+          var first_non_calc_agg = _.find(meas.aggregations, function(a) { return ! calc_measures[a]; });
+          var first_nca_label = (first_non_calc_agg == 'identity') ? meas_label : (first_non_calc_agg + " of " + meas_label);
+          // if it's an identity aggregation, use the measure ref as the ref.
+          var these_infos = _.map(meas.aggregations, function(a) { 
+              var ref = ( calc_measures[a] ? 
+                          (first_non_calc_agg == 'identity' ? (meas.ref + "_" + a) : (meas.ref + "_" + first_non_calc_agg + "_" + a)) :
+                          (a == 'identity' ? meas.ref : (meas.ref + "_" + a))
+                        );
+              var lab = calc_measures[a] ? first_nca_label : meas_label;
+              var label = (a == 'identity') ? lab : (a + " of " + lab);
+              return { ref: ref, label: label };
+          });
+          minfo = minfo.concat(these_infos);
+        }
+        return minfo;
     };
 
     cubes.Dimension = function(obj){
@@ -340,10 +354,17 @@
 
 
     cubes.Attribute = function(obj){
+        this.ref = obj.ref;
         this.name = obj.name;
         this.label = obj.label;
         this.order = obj.order;
         this.locales = obj.locales;
+        this.info = (obj.info || {});
+        this.description = obj.description;
+        this.format = obj.format;
+        if ( obj.aggregations ) {
+          this.aggregations = obj.aggregations;
+        }
     };
 
     cubes.Browser = function(server, cube){

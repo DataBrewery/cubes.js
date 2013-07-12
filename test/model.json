@@ -6,13 +6,22 @@
 			"datasource": "mydatabase"
 		},
 		"dimensions": ["daily_date", "cohort_attr"],
-		"measures": [{
-			"info": {},
-			"ref": "record_count",
-			"name": "record_count",
-			"full_name": "record_count",
-			"aggregations": ["identity", "wma"]
-		}],
+		"measures": [
+            {
+                "info": {},
+                "ref": "record_count",
+                "name": "record_count",
+                "full_name": "record_count",
+                "aggregations": ["identity", "wma"]
+		    },
+            {
+                "info": {},
+                "ref": "fooby",
+                "name": "fooby",
+                "full_name": "fooby",
+                "aggregations": ["count", "sum", "sma"]
+		    }
+        ],
 		"label": "Important Cube",
 		"key": "XXX",
 		"name": "important_cube"
@@ -416,8 +425,8 @@
             "name": "default"
         }]
     }],
-	"name": "sqsp_datamart",
-	"label": "Squarespace Data Mart",
+	"name": "datamart",
+	"label": "Data Mart",
 	"locales": [],
-	"description": "Business measures for Squarespace"
+	"description": "Business measures"
 }
