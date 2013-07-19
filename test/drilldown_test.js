@@ -27,6 +27,10 @@ suite.addBatch({
     'keys in result cell 2': function(model) { 
       var dd = new cubes.Drilldown(model.dimension('daily_date'), 'yqmd', 'month');
       assert.deepEqual(["daily_date.year", "daily_date.quarter", "daily_date.month"], dd.keysInResultCell());
+    },
+    'multiple drills': function(model) {
+      var dds = cubes.drilldowns_from_string(model, "daily_date@ymd|attr:campaign");
+      assert.deepEqual(dds, cubes.drilldowns_from_string(model, cubes.drilldowns_to_string(dds)));
     }
   }
 });

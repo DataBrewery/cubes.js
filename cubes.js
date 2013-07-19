@@ -651,8 +651,11 @@
 
     cubes.drilldowns_from_string = function(cube_or_model, drilldown_param_value) {
         var dd_strings = cubes._split_with_negative_lookbehind(drilldown_param_value, cubes.CUT_STRING_SEPARATOR, '\\');
-        return _.map(dd_strings || [], function(e) { return cubes.cut_from_string(cube_or_model, e); });
-        return cuts;
+        return _.map(dd_strings || [], function(e) { return cubes.drilldown_from_string(cube_or_model, e); });
+    };
+
+    cubes.drilldowns_to_string = function(drilldowns) {
+      return _.map(drilldowns, function(d) { return d.toString(); }).join(cubes.CUT_STRING_SEPARATOR_CHAR);
     };
 
     root['cubes'] = cubes;
