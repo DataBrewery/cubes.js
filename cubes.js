@@ -552,6 +552,7 @@
     cubes.PATH_PART_UNESCAPE_PATTERN = /\\([\\!|:;,-])/g;
 
     cubes.CUT_PARSE_REGEXP = new RegExp("^(" + cubes.CUT_INVERSION_CHAR + "?)(\\w+)(?:" + cubes.HIERARCHY_PREFIX_CHAR + "(\\w+))?" + cubes.DIMENSION_STRING_SEPARATOR_CHAR + "(.*)$")
+    cubes.DRILLDOWN_PARSE_REGEXP = new RegExp("^(\\w+)(?:" + cubes.HIERARCHY_PREFIX_CHAR + "(\\w+))?(?:" + cubes.DIMENSION_STRING_SEPARATOR_CHAR + "(\\w+))?$")
     cubes.NULL_PART_STRING = '__null__';
 
     cubes._split_with_negative_lookbehind = function(input, regex, lb) {
@@ -625,14 +626,33 @@
 
     cubes.cuts_from_string = function(cube_or_model, cut_param_value) {
         var cut_strings = cubes._split_with_negative_lookbehind(cut_param_value, cubes.CUT_STRING_SEPARATOR, '\\');
-        var cuts = _.map(cut_strings || [], function(e) { return cubes.cut_from_string(cube_or_model, e); });
-        return cuts;
+        return _.map(cut_strings || [], function(e) { return cubes.cut_from_string(cube_or_model, e); });
     };
 
     cubes.cell_from_string = function(cube, cut_param_value) {
         var cell = new cubes.Cell(cube);
         cell.cuts = cubes.cuts_from_string(cube, cut_param_value);
         return cell;
+    };
+
+    cubes.drilldown_from_string = function(cube_or_model, drilldown_string) {
+        var match = cubes.DRILLDOWN_PARSE_REGEXP.exec(drilldown_string);
+        if (!match) {
+          return null;
+        }
+        var dim_name = match[1], 
+            hierarchy = match[2] || null,
+            level = match[3] || null;
+        var dimension = cube_or_model.dimension(dim_name);
+        if ( ! dimension )
+          return null;
+        return new cubes.Drilldown(dimension, hierarchy, level);
+    };
+
+    cubes.drilldowns_from_string = function(cube_or_model, drilldown_param_value) {
+        var dd_strings = cubes._split_with_negative_lookbehind(drilldown_param_value, cubes.CUT_STRING_SEPARATOR, '\\');
+        return _.map(dd_strings || [], function(e) { return cubes.cut_from_string(cube_or_model, e); });
+        return cuts;
     };
 
     root['cubes'] = cubes;

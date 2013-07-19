@@ -8,9 +8,17 @@ var suite = vows.describe('Drilldown tests');
 suite.addBatch({
   'cuts on loaded model': {
     topic: (new cubes.Model(JSON.parse(fs.readFileSync('test/model.json')))),
-    'basic toString': function(model) { 
+    'basic toString round trip': function(model) { 
       var dd = new cubes.Drilldown(model.dimension('daily_date'), null, 'year');
-      assert.strictEqual("daily_date@ymd:year", dd.toString());
+      assert.strictEqual("daily_date@ymd:year", cubes.drilldown_from_string(model, dd.toString()).toString());
+    },
+    'basic toString round trip no hierarchy or level in initial string': function(model) { 
+      var dd = cubes.drilldown_from_string(model, "daily_date");
+      assert.strictEqual("daily_date@ymd:year", cubes.drilldown_from_string(model, dd.toString()).toString());
+    },
+    'basic toString round trip no level in initial string': function(model) { 
+      var dd = cubes.drilldown_from_string(model, "daily_date@ymd");
+      assert.strictEqual("daily_date@ymd:year", cubes.drilldown_from_string(model, dd.toString()).toString());
     },
     'keys in result cell': function(model) { 
       var dd = new cubes.Drilldown(model.dimension('daily_date'), null, 'year');
