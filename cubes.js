@@ -85,19 +85,24 @@
         return this.ajaxRequest(params);
     };
 
-    cubes.Server.prototype.connect = function(url, callback) {
+    cubes.Server.prototype.connect = function(url, callback, errCallback) {
         var self = this;
 
         self.url = self._normalize_url(url);
 
-        var options = {dataType : 'json', type : "GET", error: self._onError};
+        var options = {dataType : 'json', type : "GET"};
 
         options.url = self.url + 'version';
 
         options.success = function(resp, status, xhr) {
             self.server_version = resp.server_version;
             self.api_version = resp.api_version;
-            self.load_model(callback);
+            self.load_model(callback, errCallback);
+        };
+
+        options.error = function(resp, status, xhr) {
+            if (errCallback)
+                errCallback(resp);
         };
 
         this.ajaxRequest(options);
@@ -109,10 +114,10 @@
         return url;
     };
 
-    cubes.Server.prototype.load_model = function(callback) {
+    cubes.Server.prototype.load_model = function(callback, errCallback) {
         var self = this;
 
-        var options = {dataType : 'json', type : "GET", error: self._onError};
+        var options = {dataType : 'json', type : "GET"};
 
         options.url = self.url + 'model';
 
@@ -123,6 +128,11 @@
 
             if (callback)
                 callback(self.model);
+        };
+
+        options.error = function(resp, status, xhr) {
+            if (errCallback)
+                errCallback(resp);
         };
 
         return this.ajaxRequest(options);
