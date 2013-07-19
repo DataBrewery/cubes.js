@@ -360,13 +360,13 @@
 
     cubes.Level.prototype.key = function() {
         // Key attribute is either explicitly specified or it is first attribute in the list
-        return level._key || level.attributes[0];
+        return this._key || this.attributes[0];
     };
 
     cubes.Level.prototype.label_attribute = function() {
         // Label attribute is either explicitly specified or it is second attribute if there are more
         // than one, otherwise it is first
-        return level._label_attribute || level.attributes[1] || level.attributes[0];
+        return this._label_attribute || this.attributes[1] || this.attributes[0];
     };
 
     cubes.Level.prototype.toString = function() {
@@ -419,10 +419,28 @@
     };
 
     cubes.Drilldown = function(dimension, hierarchy, level) {
+        if ( ! _.isObject(dimension) )
+            throw "Drilldown requires a Dimension object as first argument";
         this.dimension = dimension;
         this.hierarchy = dimension.hierarchy(hierarchy);
         this.level = dimension.level(level) || this.hierarchy.levels[0];
+        if ( ! this.hierarchy ) 
+            throw "Drilldown cannot recognize hierarchy " + hierarchy + " for dimension " + dimension;
+        if ( ! this.level ) 
+            throw "Drilldown cannot recognize level " + level  + " for dimension " + dimension;
+
     };
+
+    cubes.Drilldown.prototype.toString = function() {
+        return "" + this.dimension + this.hierarchy + cubes.DIMENSION_STRING_SEPARATOR_CHAR + this.level;
+    };
+
+    cubes.Drilldown.prototype.keysInResultCell = function() {
+        var drill = this;
+        var saw_this_level = false;
+        var levels_to_look_for = _.filter(drill.hierarchy.levels, function(lvl) { return ( lvl.key() === drill.level.key() && (saw_this_level = true) ) || ( ! saw_this_level ); });
+        return _.map(levels_to_look_for, function(lvl) { return drill.dimension + cubes.ATTRIBUTE_STRING_SEPARATOR_CHAR + lvl.key() });
+    }
 
     cubes.Cell = function(cube){
         this.cube = cube;
