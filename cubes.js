@@ -34,6 +34,14 @@
       return null;
     };
 
+    _.isObject = function(o) {
+      return Object.prototype.toString.call(o) === '[object Object]';
+    };
+
+    _.isString = function(o) {
+      return Object.prototype.toString.call(o) === '[object String]';
+    };
+
     // Variables and functions go here.
     var root = this;
     var cubes = { };
@@ -157,11 +165,15 @@
     };
 
     cubes.Model.prototype.dimension = function(name) {
+        if ( _.isObject(name) )
+          return name;
         // Return a dimension with given name
         return _.find(this.dimensions, function(dim){return dim.name == name;});
     };
 
     cubes.Model.prototype.cube = function(name) {
+        if ( _.isObject(name) )
+          return name;
         // Return a dimension with given name
         return _.find(this.cubes, function(obj){return obj.name == name;});
     };
@@ -187,6 +199,8 @@
     };
 
     cubes.Cube.prototype.dimension = function(name) {
+        if ( _.isObject(name) )
+          return name;
         // Return a dimension with given name
         return _.find(this.dimensions, function(obj){return obj.name == name;});
     };
@@ -247,11 +261,18 @@
                 dim.hierarchies[hier.name] = hier;
             }
         }
+
+        // if no default_hierarchy_name defined, use first hierarchy's name.
+        if ( ! dim.default_hierarchy_name && desc.hierarchies && desc.hierarchies.length > 0 ) {
+          dim.default_hierarchy_name = desc.hierarchies[0].name;
+        }
     };
 
     cubes.Dimension.prototype.level = function(name) {
+        if ( _.isObject(name) ) 
+          return name;
         // Return a level with given name
-        return _.find(this.levels, function(obj){return obj.name == name;});
+        return _.find(this.levels, function(obj) {return obj.name == name;});
     };
 
     cubes.Dimension.prototype.toString = function(desc) {
@@ -263,13 +284,15 @@
     };
 
     cubes.Dimension.prototype.hierarchy = function(name) {
-        if(name)
+        if ( _.isObject(name) ) 
+          return name;
+        else if(name != null)
             return this.hierarchies[name];
         else
-            return this.hierarchies[default_hierarchy_name];
+            return this.hierarchies[this.default_hierarchy_name];
     };
 
-    cubes.Hierarchy = function(obj, dim){
+    cubes.Hierarchy = function(obj, dim) {
         this.parse(obj, dim);
     };
 
@@ -291,7 +314,7 @@
         hier.levels = _.map(hier._level_names, function(name) {return dim.level(name);} );
     };
 
-    cubes.Hierarchy.prototype.toString = function(desc) {
+    cubes.Hierarchy.prototype.toString = function() {
         return cubes.HIERARCHY_PREFIX_CHAR + this.name;
     };
 
@@ -325,18 +348,18 @@
         }
     };
 
-    cubes.Level.prototype.key = function(desc) {
+    cubes.Level.prototype.key = function() {
         // Key attribute is either explicitly specified or it is first attribute in the list
         return level._key || level.attributes[0];
     };
 
-    cubes.Level.prototype.label_attribute = function(desc) {
+    cubes.Level.prototype.label_attribute = function() {
         // Label attribute is either explicitly specified or it is second attribute if there are more
         // than one, otherwise it is first
         return level._label_attribute || level.attributes[1] || level.attributes[0];
     };
 
-    cubes.Level.prototype.toString = function(desc) {
+    cubes.Level.prototype.toString = function() {
         return this.name;
     };
 
@@ -385,6 +408,12 @@
         this.server.query("aggregate", this.cube, args, callback);
     };
 
+    cubes.Drilldown = function(dimension, hierarchy, level) {
+        this.dimension = dimension;
+        this.hierarchy = dimension.hierarchy(hierarchy);
+        this.level = dimension.level(level) || this.hierarchy.levels[0];
+    };
+
     cubes.Cell = function(cube){
         this.cube = cube;
         this.cuts = [];
@@ -424,7 +453,7 @@
     cubes.PointCut = function(dimension, hierarchy, path, invert) {
         this.type = 'point';
         this.dimension = dimension;
-        this.hierarchy = hierarchy;
+        this.hierarchy = dimension.hierarchy(hierarchy);
         this.path = path;
         this.invert = !!invert;
     };
@@ -433,7 +462,7 @@
         var path_str = cubes.string_from_path(this.path);
         return (this.invert ? cubes.CUT_INVERSION_CHAR : "") +
             this.dimension +
-            ( this.hierarchy ? ( cubes.HIERARCHY_PREFIX_CHAR + this.hierarchy ) : '' ) +
+            ( this.hierarchy || '' ) +
             cubes.DIMENSION_STRING_SEPARATOR_CHAR +
             path_str;
     };
@@ -441,7 +470,7 @@
     cubes.SetCut = function(dimension, hierarchy, paths, invert) {
         this.type = 'set';
         this.dimension = dimension;
-        this.hierarchy = hierarchy;
+        this.hierarchy = dimension.hierarchy(hierarchy);
         this.paths = paths;
         this.invert = !!invert;
     };
@@ -450,7 +479,7 @@
         var path_str = _.map(this.paths, cubes.string_from_path).join(cubes.SET_CUT_SEPARATOR_CHAR);
         return (this.invert ? cubes.CUT_INVERSION_CHAR : "") +
             this.dimension +
-            ( this.hierarchy ? ( cubes.HIERARCHY_PREFIX_CHAR + this.hierarchy ) : '' ) +
+            ( this.hierarchy || '' ) +
             cubes.DIMENSION_STRING_SEPARATOR_CHAR +
             path_str;
     };
@@ -458,7 +487,7 @@
     cubes.RangeCut = function(dimension, hierarchy, from_path, to_path, invert){
         this.type = 'range';
         this.dimension = dimension;
-        this.hierarchy = hierarchy;
+        this.hierarchy = dimension.hierarchy(hierarchy);
         if ( from_path === null && to_path === null ) {
             throw "Either from_path or to_path must be defined for RangeCut";
         }
@@ -471,7 +500,7 @@
         var path_str = cubes.string_from_path(this.from_path) + cubes.RANGE_CUT_SEPARATOR_CHAR + cubes.string_from_path(this.to_path);
         return (this.invert ? cubes.CUT_INVERSION_CHAR : "") +
             this.dimension +
-            ( this.hierarchy ? ( cubes.HIERARCHY_PREFIX_CHAR + this.hierarchy ) : '' ) +
+            ( this.hierarchy || '' ) +
             cubes.DIMENSION_STRING_SEPARATOR_CHAR +
             path_str;
     };
@@ -494,7 +523,7 @@
     cubes.PATH_PART_ESCAPE_PATTERN = /([\\!|:;,-])/g;
     cubes.PATH_PART_UNESCAPE_PATTERN = /\\([\\!|:;,-])/g;
 
-    cubes.CUT_PARSE_REGEXP = new RegExp("^(" + cubes.CUT_INVERSION_CHAR + "?)(\\w+)(?:" + cubes.HIERARCHY_PREFIX_CHAR + "(\w+))?" + cubes.DIMENSION_STRING_SEPARATOR_CHAR + "(.*)$")
+    cubes.CUT_PARSE_REGEXP = new RegExp("^(" + cubes.CUT_INVERSION_CHAR + "?)(\\w+)(?:" + cubes.HIERARCHY_PREFIX_CHAR + "(\\w+))?" + cubes.DIMENSION_STRING_SEPARATOR_CHAR + "(.*)$")
     cubes.NULL_PART_STRING = '__null__';
 
     cubes._split_with_negative_lookbehind = function(input, regex, lb) {
@@ -539,7 +568,7 @@
         return parsed;
     };
 
-    cubes.cut_from_string = function(cut_string) {
+    cubes.cut_from_string = function(cube_or_model, cut_string) {
         // parse out invert, dim_name, hierarchy, and path thingy
         var match = cubes.CUT_PARSE_REGEXP.exec(cut_string);
         if (!match) {
@@ -549,31 +578,32 @@
             dim_name = match[2],
             hierarchy = match[3] || null,
             path_thingy = match[4];
+        var dimension = cube_or_model.dimension(dim_name);
         // if path thingy splits on set separator, make a SetCut.
         var splits = cubes._split_with_negative_lookbehind(path_thingy, cubes.SET_CUT_SEPARATOR, '\\');
         if ( splits.length > 1 ) {
-          return new cubes.SetCut(dim_name, hierarchy, _.map(splits, function(ss) { return cubes.path_from_string(ss); }), invert);
+          return new cubes.SetCut(dimension, hierarchy, _.map(splits, function(ss) { return cubes.path_from_string(ss); }), invert);
         }
         // else if path thingy splits into two on range separator, make a RangeCut.
         splits = cubes._split_with_negative_lookbehind(path_thingy, cubes.RANGE_CUT_SEPARATOR, '\\');
         if ( splits.length == 2 ) {
           var from_path = splits[0] ? cubes.path_from_string(splits[0]) : null;
           var to_path = splits[1] ? cubes.path_from_string(splits[1]) : null;
-          return new cubes.RangeCut(dim_name, hierarchy, from_path, to_path, invert);
+          return new cubes.RangeCut(dimension, hierarchy, from_path, to_path, invert);
         }
         // else it's a PointCut.
-        return new cubes.PointCut(dim_name, hierarchy, cubes.path_from_string(path_thingy), invert);
+        return new cubes.PointCut(dimension, hierarchy, cubes.path_from_string(path_thingy), invert);
     };
 
-    cubes.cuts_from_string = function(cut_param_value) {
+    cubes.cuts_from_string = function(cube_or_model, cut_param_value) {
         var cut_strings = cubes._split_with_negative_lookbehind(cut_param_value, cubes.CUT_STRING_SEPARATOR, '\\');
-        var cuts = _.map(cut_strings || [], function(e) { return cubes.cut_from_string(e); });
+        var cuts = _.map(cut_strings || [], function(e) { return cubes.cut_from_string(cube_or_model, e); });
         return cuts;
     };
 
     cubes.cell_from_string = function(cube, cut_param_value) {
         var cell = new cubes.Cell(cube);
-        cell.cuts = cubes.cuts_from_string(cut_param_value);
+        cell.cuts = cubes.cuts_from_string(cube, cut_param_value);
         return cell;
     };
 
