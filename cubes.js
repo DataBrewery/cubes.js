@@ -61,7 +61,7 @@
         throw "Must implement ajaxRequest for server to process jquery-style $.ajax settings object";
     };
 
-    cubes.Server.prototype.query = function(query, cube, args, callback) {
+    cubes.Server.prototype.query = function(query, cube, args, callback, errCallback) {
         var params = {dataType : 'json', type : "GET"};
 
         if(cube.hasOwnProperty("name"))
@@ -80,6 +80,7 @@
         };
         params.error = function(obj) {
             // FIXME: Some error handler here
+            if (errCallback) errCallback(obj);
         };
 
         return this.ajaxRequest(params);
