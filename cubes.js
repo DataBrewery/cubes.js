@@ -75,6 +75,9 @@
         if(args && args.cut)
             params.data.cut = params.data.cut.toString();
 
+        if(args && args.drilldown)
+          params.data.drilldown = params.data.drilldown.toString();
+
         params.success = function(obj) {
             callback(obj);
         };
@@ -410,11 +413,18 @@
         return new cubes.Cell(this.cube);
     };
 
-    cubes.Browser.prototype.aggregate = function(cell, drilldown, callback) {
-        var args = {};
+    cubes.Browser.prototype.aggregate = function(args, callback) {
+        if ( ! args )
+          args = {};
 
-        if (cell) args.cut = cell;
-        if (drilldown) args.drilldown = drilldown;
+        var http_args = {};
+
+        if (args.cut) http_args.cut = args.cut.toString();
+        if (args.drilldown) http_args.drilldown = args.drilldown.toString();
+        if (args.split) http_args.split = args.split.toString();
+        if (args.order) http_args.order = args.order.toString();
+        if (args.page) http_args.page = args.page;
+        if (args.pagesize) http_args.pagesize = args.pagesize;
 
         this.server.query("aggregate", this.cube, args, callback);
     };

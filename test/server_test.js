@@ -37,8 +37,17 @@ suite.addBatch({
     'Browser': {
           topic: function() { var s = new cubes.Server(AjaxHandler); s.connect("http://foo.com/cubes"); return new cubes.Browser(s, s.model.cubes[0]); },
           'full cube': function(b) { assert.strictEqual(b.full_cube().cube, b.cube); assert.deepEqual(b.full_cube().cuts, []) },
-          'can slice': function(b) { assert.instanceOf(b.full_cube().slice(new cubes.PointCut(b.cube.dimension('cohort_attr'), ['paid', 'direct'])).cuts[0], cubes.PointCut); },
-          'can re-slice': function(b) { assert.strictEqual(b.full_cube().slice(new cubes.PointCut(b.cube.dimension('cohort_attr'), ['paid', 'direct'])).slice(new cubes.PointCut(b.cube.dimension('cohort_attr'), ['unpaid'])).cuts.length, 1); }
+          'can slice': function(b) { assert.instanceOf(b.full_cube().slice(new cubes.PointCut(b.cube.dimension('cohort_attr'), null, ['paid', 'direct'])).cuts[0], cubes.PointCut); },
+          'can re-slice': function(b) { assert.strictEqual(b.full_cube().slice(new cubes.PointCut(b.cube.dimension('cohort_attr'), null, ['paid', 'direct'])).slice(new cubes.PointCut(b.cube.dimension('cohort_attr'), null, ['unpaid'])).cuts.length, 1); },
+          'aggregate': function(b) { 
+            var results = {};
+            var handler = function(args) { results = { url: args.url, data: args.data }; };
+            var s = new cubes.Server(handler); s.connect("http://foo.com/cubes"); 
+            s.model = new cubes.Model(model_json);
+            var browser = new cubes.Browser(s, s.model.cubes[0]);
+            browser.aggregate({cut: new cubes.PointCut(browser.cube.dimension('cohort_attr'), null, ['paid', 'direct'])});
+            assert.deepEqual({url: "http://foo.com/cubes/cube/important_cube/aggregate", data: { cut: "cohort_attr@default:paid,direct" }}, results);
+          }
     }
   }
 });
