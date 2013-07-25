@@ -228,7 +228,7 @@
           var meas_label = meas.label || meas.name;
           // get the first non-calculated agg.
           var first_non_calc_agg = _.find(meas.aggregations, function(a) { return ! calc_measures[a]; });
-          var first_nca_label = (first_non_calc_agg == 'identity') ? meas_label : (first_non_calc_agg + " of " + meas_label);
+          var first_nca_label = (first_non_calc_agg === 'identity' || meas.name === 'record') ? meas_label : (first_non_calc_agg + " of " + meas_label);
           // if it's an identity aggregation, use the measure ref as the ref.
           var these_infos = _.map(meas.aggregations, function(a) { 
               var ref = ( calc_measures[a] ? 
@@ -237,7 +237,7 @@
                         );
               var lab = calc_measures[a] ? first_nca_label : meas_label;
               var label = (a == 'identity') ? lab : (a + " of " + lab);
-              return { ref: ref, label: label };
+              return { ref: ref, label: label, is_calculated: (!!calc_measures[a]) };
           });
           minfo = minfo.concat(these_infos);
         }
@@ -439,7 +439,6 @@
             throw "Drilldown cannot recognize hierarchy " + hierarchy + " for dimension " + dimension;
         if ( ! this.level ) 
             throw "Drilldown cannot recognize level " + level  + " for dimension " + dimension;
-
     };
 
     cubes.Drilldown.prototype.toString = function() {
@@ -453,9 +452,9 @@
         return _.map(levels_to_look_for, function(lvl) { return drill.dimension + cubes.ATTRIBUTE_STRING_SEPARATOR_CHAR + lvl.key() });
     }
 
-    cubes.Cell = function(cube){
+    cubes.Cell = function(cube, cuts){
         this.cube = cube;
-        this.cuts = [];
+        this.cuts = _.map((cuts || []), function(i) { return i; });
     };
 
     cubes.Cell.prototype.slice = function(new_cut) {
@@ -474,8 +473,7 @@
         if ( ! new_cut_pushed ) {
           cuts.push(new_cut);
         }
-        var cell = new cubes.Cell(this.cube);
-        cell.cuts = cuts;
+        var cell = new cubes.Cell(this.cube, cuts);
         return cell;
     };
 
@@ -641,9 +639,7 @@
     };
 
     cubes.cell_from_string = function(cube, cut_param_value) {
-        var cell = new cubes.Cell(cube);
-        cell.cuts = cubes.cuts_from_string(cube, cut_param_value);
-        return cell;
+        return new cubes.Cell(cube, cubes.cuts_from_string(cube, cut_param_value));
     };
 
     cubes.drilldown_from_string = function(cube_or_model, drilldown_string) {
