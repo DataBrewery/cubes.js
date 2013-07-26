@@ -370,7 +370,11 @@
     cubes.Level.prototype.label_attribute = function() {
         // Label attribute is either explicitly specified or it is second attribute if there are more
         // than one, otherwise it is first
-        return this._label_attribute || this.attributes[1] || this.attributes[0];
+        var the_attr = null;
+        if ( this._label_attribute ) {
+          the_attr = _.find(this.attributes, function(a) { a.name === this._label_attribute; });
+        }
+        return the_attr || this.attributes[1] || this.attributes[0];
     };
 
     cubes.Level.prototype.toString = function() {
@@ -447,6 +451,10 @@
 
     cubes.Drilldown.prototype.keysInResultCell = function() {
         var drill = this;
+        // short-circuit if dimension is_flat: the key is the dim name or level name, which are equivalent.
+        if ( drill.dimension.is_flat ) {
+          return [ drill.dimension.name ];
+        }
         var saw_this_level = false;
         var levels_to_look_for = _.filter(drill.hierarchy.levels, function(lvl) { return ( lvl.key() === drill.level.key() && (saw_this_level = true) ) || ( ! saw_this_level ); });
         return _.map(levels_to_look_for, function(lvl) { return drill.dimension + cubes.ATTRIBUTE_STRING_SEPARATOR_CHAR + lvl.key() });
