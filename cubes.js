@@ -225,7 +225,7 @@
 
         for ( var i = 0; i < this.measures.length; i++ ) {
           var meas = this.measures[i];
-          var meas_label = meas.label || (meas.name === 'record' || meas.name === 'record_count') ? this.label : meas.name;
+          var meas_label = meas.label || (meas.name === 'record' || meas.name === 'record_count' ? this.label : "") || meas.name;
           // get the first non-calculated agg.
           var first_non_calc_agg = _.find(meas.aggregations, function(a) { return ! calc_measures[a]; });
           var first_nca_label = (first_non_calc_agg === 'identity' || meas.name === 'record' || meas.name === 'record_count') 
