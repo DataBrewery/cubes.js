@@ -20,7 +20,7 @@ suite.addBatch({
       assert.strictEqual(minfo[3].ref, "fooby_sum");
       assert.strictEqual(minfo[4].ref, "fooby_count_sma");
       assert.strictEqual(minfo[4].label, "sma of count of fooby");
-      assert.strictEqual(minfo[1].label, "wma of record_count");
+      assert.strictEqual(minfo[1].label, "wma of Acquisitions");
     },
     'many dimensions for first cube': function(topic) { assert.strictEqual(topic.cubes[0].dimensions.length, 2); },
     'first dimension is a dim object': function(topic) { assert.instanceOf(topic.cubes[0].dimensions[0], cubes.Dimension); },

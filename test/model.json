@@ -22,7 +22,7 @@
                 "aggregations": ["count", "sum", "sma"]
 		    }
         ],
-		"label": "Important Cube",
+		"label": "Acquisitions",
 		"key": "XXX",
 		"name": "important_cube"
 	}, {
@@ -57,7 +57,7 @@
 			"full_name": "total_so_far",
 			"aggregations": ["identity", "sma"]
 		}],
-		"label": "Important Cube 2",
+		"label": "Conversions",
 		"key": "pk_fact_id",
 		"name": "important_cube_2"
 	}],
