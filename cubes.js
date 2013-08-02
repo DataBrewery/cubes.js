@@ -573,6 +573,7 @@
     cubes.CUT_PARSE_REGEXP = new RegExp("^(" + cubes.CUT_INVERSION_CHAR + "?)(\\w+)(?:" + cubes.HIERARCHY_PREFIX_CHAR + "(\\w+))?" + cubes.DIMENSION_STRING_SEPARATOR_CHAR + "(.*)$")
     cubes.DRILLDOWN_PARSE_REGEXP = new RegExp("^(\\w+)(?:" + cubes.HIERARCHY_PREFIX_CHAR + "(\\w+))?(?:" + cubes.DIMENSION_STRING_SEPARATOR_CHAR + "(\\w+))?$")
     cubes.NULL_PART_STRING = '__null__';
+    cubes.SPLIT_DIMENSION_STRING = '__within_split__';
 
     cubes._split_with_negative_lookbehind = function(input, regex, lb) {
       var string = input;
