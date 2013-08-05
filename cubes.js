@@ -366,7 +366,8 @@
 
     cubes.Level.prototype.key = function() {
         // Key attribute is either explicitly specified or it is first attribute in the list
-        return this._key || this.attributes[0];
+        the_attr = _.find(this.attributes, function(a) { a.name === this._key; });
+        return the_attr || this.attributes[0];
     };
 
     cubes.Level.prototype.label_attribute = function() {
@@ -453,16 +454,19 @@
 
     cubes.Drilldown.prototype.keysInResultCell = function() {
         var drill = this;
-        // short-circuit if dimension is_flat: the key is the dim name or level name, which are equivalent.
-        if ( drill.dimension.is_flat ) {
-          return [ drill.dimension.name ];
-        }
         var saw_this_level = false;
         var levels_to_look_for = _.filter(drill.hierarchy.levels, function(lvl) { return ( lvl.key() === drill.level.key() && (saw_this_level = true) ) || ( ! saw_this_level ); });
-        return _.map(levels_to_look_for, function(lvl) { return drill.dimension + cubes.ATTRIBUTE_STRING_SEPARATOR_CHAR + lvl.key() });
+        return _.map(levels_to_look_for, function(lvl) { return lvl.key().ref });
     }
 
-    cubes.Cell = function(cube, cuts){
+    cubes.Drilldown.prototype.labelsInResultCell = function() {
+        var drill = this;
+        var saw_this_level = false;
+        var levels_to_look_for = _.filter(drill.hierarchy.levels, function(lvl) { return ( lvl.key() === drill.level.key() && (saw_this_level = true) ) || ( ! saw_this_level ); });
+        return _.map(levels_to_look_for, function(lvl) { return lvl.label_attribute().ref });
+    }
+
+    cubes.Cell = function(cube, cuts) {
         this.cube = cube;
         this.cuts = _.map((cuts || []), function(i) { return i; });
     };
