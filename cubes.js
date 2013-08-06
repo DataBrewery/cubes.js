@@ -226,6 +226,7 @@
         for ( var i = 0; i < this.measures.length; i++ ) {
           var meas = this.measures[i];
           var meas_label = meas.label || (meas.name === 'record' || meas.name === 'record_count' ? this.label : "") || meas.name;
+          var info = meas.info || {};
           // get the first non-calculated agg.
           var first_non_calc_agg = _.find(meas.aggregations, function(a) { return ! calc_measures[a]; });
           var first_nca_label = (first_non_calc_agg === 'identity' || meas.name === 'record' || meas.name === 'record_count') 
@@ -239,7 +240,7 @@
                         );
               var lab = calc_measures[a] ? first_nca_label : meas_label;
               var label = (a === 'identity' || (a === 'count' && meas.name === 'record')) ? lab : (calc_measures[a] + " of " + lab);
-              return { ref: ref, label: label, is_calculated: (!!calc_measures[a]) };
+              return { ref: ref, label: label, is_calculated: (!!calc_measures[a]), info: info };
           });
           minfo = minfo.concat(these_infos);
         }
