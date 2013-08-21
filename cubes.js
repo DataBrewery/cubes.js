@@ -354,6 +354,7 @@
         !desc.info || (level.info = desc.info);
         level._key = desc.key;
         level._label_attribute = desc.label_attribute;
+        level._order_attribute = desc.order_attribute;
 
         level.attributes = [];
 
@@ -378,7 +379,15 @@
         if ( this._label_attribute ) {
           the_attr = _.find(this.attributes, function(a) { a.name === this._label_attribute; });
         }
-        return the_attr || this.attributes[1] || this.attributes[0];
+        return the_attr || this.key();
+    };
+
+    cubes.Level.prototype.order_attribute = function() {
+        var the_attr = null;
+        if ( this._order_attribute ) {
+          the_attr = _.find(this.attributes, function(a) { a.name === this.__order_attribute; });
+        }
+        return the_attr || this.key();
     };
 
     cubes.Level.prototype.toString = function() {
