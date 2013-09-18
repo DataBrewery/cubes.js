@@ -34,6 +34,20 @@
       return null;
     };
 
+    _.indexOf = function(ary, f) {
+      var i;
+      if (Object.prototype.toString.call(ary) === '[object Array]') {
+        for (i = 0; i < ary.length; i++) {
+          if ( f(ary[i]) ) return i;
+        }
+      } else {
+        for (i in ary) {
+          if ( f(ary[i]) ) return i;
+        }
+      }
+      return -1;
+    };
+
     _.isObject = function(o) {
       return Object.prototype.toString.call(o) === '[object Object]';
     };
@@ -192,6 +206,15 @@
         return _.find(this.cubes, function(obj){return obj.name == name;});
     };
 
+    cubes.Model.prototype.replace_cube = function(new_cube) {
+        if ( ! _.isObject(new_cube) ) 
+            throw "Must pass cube object as argument";
+        var idx = _.indexOf(this.cubes, function(c) { return c.name === new_cube.name; });
+        if ( idx != -1 ) 
+            this.cubes[idx] = new_cube;
+
+    }
+
     cubes.Cube = function(obj, model) {
         this.url = null;
         this.parse(obj, model);
@@ -210,6 +233,12 @@
         this.details = _.map(desc.details || [], function(m) { return new cubes.Attribute(m); });
 
         this.dimensions = _.map(desc.dimensions || [], function(name) {return model.dimension(name);} );
+
+        this._is_complete = (this.measures.length > 0 && this.dimensions.length > 0);
+    };
+
+    cubes.Cube.prototype.is_complete = function() {
+      return this._is_complete;
     };
 
     cubes.Cube.prototype.dimension = function(name) {
