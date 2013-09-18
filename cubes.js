@@ -156,6 +156,43 @@
         return this.ajaxRequest(options);
     };
 
+    cubes.Server.prototype.load_cube_model = function(cube, callback, errCallback) {
+        if ( _.isObject(cube) ) {
+            cube = cube.name;
+        }
+        var options = {dataType : 'json', type : "GET"};
+
+        options.url = self.url + 'model/cube/' + encodeURI(cube);
+
+        options.success = function(resp, status, xhr) {
+            // must parse dimensions first into a "fake" model
+            var dimension_model = new cubes.Model(resp);
+            var cube = new cubes.Cube(resp, dimension_model);
+
+            self.model.replace_cube(cube);
+
+            // FIXME: handle model parse failure
+
+            if (callback)
+                callback(cube);
+        };
+
+        options.error = function(resp, status, xhr) {
+            if (errCallback)
+                errCallback(resp);
+        };
+
+        return this.ajaxRequest(options);
+    };
+
+    cubes.Model = function(obj){
+        // obj - model description
+        this.parse(obj);
+    };
+
+    cubes.Model.prototype.parse = function(desc) {
+    };
+
     cubes.Model = function(obj){
         // obj - model description
         this.parse(obj);
@@ -212,7 +249,6 @@
         var idx = _.indexOf(this.cubes, function(c) { return c.name === new_cube.name; });
         if ( idx != -1 ) 
             this.cubes[idx] = new_cube;
-
     }
 
     cubes.Cube = function(obj, model) {
