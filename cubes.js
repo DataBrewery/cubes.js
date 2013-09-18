@@ -304,7 +304,7 @@
                           (a == 'identity' ? meas.ref : (meas.ref + "_" + a))
                         );
               var lab = calc_measures[a] ? first_nca_label : meas_label;
-              var label = (a === 'identity' || (a === 'count' && meas.name === 'record')) ? lab : (calc_measures[a] + " of " + lab);
+              var label = (a === 'identity' || (a === 'count' && meas.name === 'record')) ? lab : ((calc_measures[a] || a) + " of " + lab);
               return { ref: ref, label: label, is_calculated: (!!calc_measures[a]), info: info };
           });
           minfo = minfo.concat(these_infos);
