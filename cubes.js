@@ -157,6 +157,8 @@
     };
 
     cubes.Server.prototype.load_cube_model = function(cube, callback, errCallback) {
+        var self = this;
+
         if ( _.isObject(cube) ) {
             cube = cube.name;
         }
