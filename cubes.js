@@ -168,7 +168,7 @@
 
         options.success = function(resp, status, xhr) {
             // must parse dimensions first into a "fake" model
-            var dimension_model = new cubes.Model(resp);
+            var dimension_model = new cubes.Model({ dimensions: (resp.dimensions || []) });
             var cube = new cubes.Cube(resp, dimension_model);
 
             self.model.replace_cube(cube);
