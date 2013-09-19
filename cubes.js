@@ -295,12 +295,13 @@
           var meas_label = meas.label || (meas.name === 'record' || meas.name === 'record_count' ? this.label : "") || meas.name;
           var info = meas.info || {};
           // get the first non-calculated agg.
-          var first_non_calc_agg = _.find(meas.aggregations, function(a) { return ! calc_measures[a]; });
+          var aggregations = (meas.aggregations || []);
+          var first_non_calc_agg = _.find(aggregations, function(a) { return ! calc_measures[a]; }) || 'identity';
           var first_nca_label = (first_non_calc_agg === 'identity' || meas.name === 'record' || meas.name === 'record_count') 
              ? meas_label 
              : (first_non_calc_agg + " of " + meas_label);
           // if it's an identity aggregation, use the measure ref as the ref.
-          var these_infos = _.map(meas.aggregations, function(a) { 
+          var these_infos = _.map(aggregations, function(a) { 
               var ref = ( calc_measures[a] ? 
                           (first_non_calc_agg == 'identity' ? (meas.ref + "_" + a) : (meas.ref + "_" + first_non_calc_agg + "_" + a)) :
                           (a == 'identity' ? meas.ref : (meas.ref + "_" + a))
