@@ -232,7 +232,7 @@
     };
 
     cubes.Model.prototype.dimension = function(name) {
-        if ( _.isObject(name) )
+        if ( _.isObject(name) && name.parse )
           return name;
         // Return a dimension with given name
         return _.find(this.dimensions, function(dim){return dim.name == name;});
@@ -270,7 +270,7 @@
         this.measures = _.map(desc.measures || [], function(m) { return new cubes.Attribute(m); });
         this.details = _.map(desc.details || [], function(m) { return new cubes.Attribute(m); });
 
-        this.dimensions = _.map(desc.dimensions || [], function(name) {return model.dimension(name);} );
+        this.dimensions = _.map(desc.dimensions || [], function(dim) {return typeof(dim) === 'string' ? model.dimension(dim) : model.dimension(dim.name);} );
 
         this._is_complete = (this.measures.length > 0 && this.dimensions.length > 0);
     };
@@ -283,7 +283,7 @@
         if ( _.isObject(name) )
           return name;
         // Return a dimension with given name
-        return _.find(this.dimensions, function(obj){return obj.name == name;});
+        return _.find(this.dimensions, function(obj){return obj.name === name;});
     };
 
     cubes.Cube.prototype.measure_info = function() {
