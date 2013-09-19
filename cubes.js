@@ -353,6 +353,16 @@
         }
     };
 
+    cubes.Dimension.prototype.hierarchy = function(name) {
+        if ( _.isObject(name) ) 
+          return name;
+        if ( ! name ) {
+          return this.hierarchies[this.default_hierarchy_name];
+        }
+        // Return a hierarchy with given name
+        return this.hierarchies[name];
+    }
+
     cubes.Dimension.prototype.level = function(name) {
         if ( _.isObject(name) ) 
           return name;
@@ -390,13 +400,9 @@
         !desc.description || (hier.description = desc.description)
         !desc.info || (hier.info = desc.info);
 
-        hier._level_names = [];
+        var level_names = desc.levels || [];
 
-        for(i in desc.levels) {
-            hier._level_names.push(desc.levels[i]);
-        }
-
-        hier.levels = _.map(hier._level_names, function(name) {return dim.level(name);} );
+        hier.levels = _.map(level_names, function(name) {return dim.level(name);} );
     };
 
     cubes.Hierarchy.prototype.toString = function() {
