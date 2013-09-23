@@ -266,6 +266,7 @@
         !desc.description || (this.description = desc.description);
         !desc.key || (this.key = desc.key);
         !desc.info || (this.info = desc.info);
+        !desc.category || (this.category = desc.category);
 
         this.measures = _.map(desc.measures || [], function(m) { return new cubes.Attribute(m); });
         this.details = _.map(desc.details || [], function(m) { return new cubes.Attribute(m); });
