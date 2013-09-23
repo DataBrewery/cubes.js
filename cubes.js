@@ -309,7 +309,7 @@
                         );
               var lab = calc_measures[a] ? first_nca_label : meas_label;
               var label = (a === 'identity' || (a === 'count' && meas.name === 'record')) ? lab : ((calc_measures[a] || a) + " of " + lab);
-              return { ref: ref, label: label, is_calculated: (!!calc_measures[a]), info: info };
+              return { measure: meas.name, ref: ref, label: label, is_calculated: (!!calc_measures[a]), info: info };
           });
           minfo = minfo.concat(these_infos);
         }
@@ -512,6 +512,7 @@
         var http_args = {};
 
         if (args.cut) http_args.cut = args.cut.toString();
+        if (args.measure) http_args.measure = args.measure.toString();
         if (args.drilldown) http_args.drilldown = args.drilldown.toString();
         if (args.split) http_args.split = args.split.toString();
         if (args.order) http_args.order = args.order.toString();
