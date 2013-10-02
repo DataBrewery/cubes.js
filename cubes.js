@@ -443,7 +443,8 @@
 
     cubes.Level.prototype.key = function() {
         // Key attribute is either explicitly specified or it is first attribute in the list
-        the_attr = _.find(this.attributes, function(a) { a.name === this._key; });
+        var key = this._key;
+        the_attr = _.find(this.attributes, function(a) { return a.name === key; });
         return the_attr || this.attributes[0];
     };
 
@@ -452,7 +453,8 @@
         // than one, otherwise it is first
         var the_attr = null;
         if ( this._label_attribute ) {
-          the_attr = _.find(this.attributes, function(a) { a.name === this._label_attribute; });
+            var label_attribute = this._label_attribute;
+            the_attr = _.find(this.attributes, function(a) { return a.name === label_attribute; });
         }
         return the_attr || this.key();
     };
