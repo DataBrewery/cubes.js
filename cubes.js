@@ -288,32 +288,7 @@
     };
 
     cubes.Cube.prototype.measure_info = function() {
-        var minfo = [];
-        var calc_measures = { 'sma': 'Simple Moving Avg.', 'wma': 'Weighted Moving Avg.' };
-
-        for ( var i = 0; i < this.measures.length; i++ ) {
-          var meas = this.measures[i];
-          var meas_label = meas.label || (meas.name === 'record' || meas.name === 'record_count' ? this.label : "") || meas.name;
-          var info = meas.info || {};
-          // get the first non-calculated agg.
-          var aggregations = (meas.aggregations || []);
-          var first_non_calc_agg = _.find(aggregations, function(a) { return ! calc_measures[a]; }) || 'identity';
-          var first_nca_label = (first_non_calc_agg === 'identity' || meas.name === 'record' || meas.name === 'record_count') 
-             ? meas_label 
-             : (first_non_calc_agg + " of " + meas_label);
-          // if it's an identity aggregation, use the measure ref as the ref.
-          var these_infos = _.map(aggregations, function(a) { 
-              var ref = ( calc_measures[a] ? 
-                          (first_non_calc_agg == 'identity' ? (meas.ref + "_" + a) : (meas.ref + "_" + first_non_calc_agg + "_" + a)) :
-                          (a == 'identity' ? meas.ref : (meas.ref + "_" + a))
-                        );
-              var lab = calc_measures[a] ? first_nca_label : meas_label;
-              var label = (a === 'identity' || (a === 'count' && meas.name === 'record')) ? lab : ((calc_measures[a] || a) + " of " + lab);
-              return { measure: meas.name, ref: ref, label: label, is_calculated: (!!calc_measures[a]), info: info };
-          });
-          minfo = minfo.concat(these_infos);
-        }
-        return minfo;
+        return this.aggregates;
     };
 
     cubes.Dimension = function(obj){
