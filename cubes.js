@@ -273,7 +273,7 @@
 
         this.dimensions = _.map(desc.dimensions || [], function(dim) {return typeof(dim) === 'string' ? model.dimension(dim) : model.dimension(dim.name);} );
 
-        this._is_complete = (this.measures.length > 0 && this.dimensions.length > 0);
+        this._is_complete = ((this.measures.length > 0 || this.aggregates.length > 0) && this.dimensions.length > 0);
     };
 
     cubes.Cube.prototype.is_complete = function() {
