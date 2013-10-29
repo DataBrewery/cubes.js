@@ -137,7 +137,7 @@
 
         var options = {dataType : 'json', type : "GET"};
 
-        options.url = self.url + 'model';
+        options.url = self.url + 'cubes';
 
         options.success = function(resp, status, xhr) {
             self.model = new cubes.Model(resp);
