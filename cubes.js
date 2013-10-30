@@ -1,6 +1,12 @@
+/* Cubes.js
+ *
+ * JavaScript library for Cubes OLAP.
+ *
+ */
+
 (function(){
 
-    // underscore simulation.
+    // Light-weight "underscore" replacements
 
     var _ = {};
 
@@ -60,6 +66,11 @@
     var root = this;
     var cubes = { };
 
+    /*
+     * Server
+     * ======
+     */
+
     cubes.Server = function(ajaxHandler){
         // Represents Cubes Slicer Server connection.
         //
@@ -68,7 +79,16 @@
         // * `ajaxHandler`: a function accepting jquery-style settings object as in $.ajax(settings)
         //
 
-        this.ajaxRequest = ajaxHandler;
+        if(ajaxHandler)
+        {
+            this.ajaxRequest = ajaxHandler;
+        }
+        else
+        {
+            this.ajaxRequest = $.ajax;
+        }
+        this._cube_list = [];
+        this._cubes = {}
     };
 
     cubes.Server.prototype.ajaxRequest = function(settings) {
@@ -115,7 +135,7 @@
         options.success = function(resp, status, xhr) {
             self.server_version = resp.server_version;
             self.api_version = resp.api_version;
-            self.load_model(callback, errCallback);
+            self.load_cube_list(callback, errCallback);
         };
 
         options.error = function(resp, status, xhr) {
@@ -132,7 +152,7 @@
         return url;
     };
 
-    cubes.Server.prototype.load_model = function(callback, errCallback) {
+    cubes.Server.prototype.load_cube_list = function(callback, errCallback) {
         var self = this;
 
         var options = {dataType : 'json', type : "GET"};
@@ -140,12 +160,10 @@
         options.url = self.url + 'cubes';
 
         options.success = function(resp, status, xhr) {
-            self.model = new cubes.Model(resp);
-
-            // FIXME: handle model parse failure
+            self._cube_list = resp
 
             if (callback)
-                callback(self.model);
+                callback(self._cube_list);
         };
 
         options.error = function(resp, status, xhr) {
@@ -156,25 +174,26 @@
         return this.ajaxRequest(options);
     };
 
-    cubes.Server.prototype.load_cube_model = function(cube, callback, errCallback) {
+    cubes.Server.prototype.get_cube = function(name, callback, errCallback) {
         var self = this;
 
-        if ( _.isObject(cube) ) {
-            cube = cube.name;
+        // Return the cube if already loaded
+        if((name in this._cubes) && callback){
+            callback(this._cubes[name]);
+            return null;
         }
+            
         var options = {dataType : 'json', type : "GET"};
 
-        options.url = self.url + 'model/cube/' + encodeURI(cube);
+        options.url = self.url + 'cube/' + encodeURI(name) + '/model';
 
         options.success = function(resp, status, xhr) {
             // must parse dimensions first into a "fake" model
-            var dimension_model = new cubes.Model({ dimensions: (resp.dimensions || []) });
-            var cube = new cubes.Cube(resp, dimension_model);
+            var cube = new cubes.Cube(resp);
 
-            self.model.replace_cube(cube);
+            self._cubes[name] = cube;
 
             // FIXME: handle model parse failure
-
             if (callback)
                 callback(cube);
         };
@@ -187,97 +206,26 @@
         return this.ajaxRequest(options);
     };
 
-    cubes.Model = function(obj){
-        // obj - model description
-        this.parse(obj);
-    };
+    /*
+     * The Cube
+     * ========
+     */
 
-    cubes.Model.prototype.parse = function(desc) {
-    };
-
-    cubes.Model = function(obj){
-        // obj - model description
-        this.parse(obj);
-    };
-
-    cubes.Model.prototype.parse = function(desc) {
-        var model = this;
-        var i;
-
-        !desc.name        || (model.name = desc.name);
-        !desc.label       || (model.label = desc.label);
-        !desc.description || (model.description = desc.description);
-        !desc.locale      || (model.locale = desc.locale);
-        !desc.info || (model.info = desc.info);
-        model.locales = desc.locales;
-
-        model.dimensions = [];
-
-        if(desc.dimensions) {
-            for(i in desc.dimensions) {
-                var dim = new cubes.Dimension(desc.dimensions[i]);
-                model.dimensions.push(dim);
-            }
-        }
-
-        model.cubes = [];
-
-        if(desc.cubes) {
-            for(i in desc.cubes) {
-                var cube = new cubes.Cube(desc.cubes[i], this);
-                model.cubes.push(cube);
-            }
-        }
-
-    };
-
-    cubes.Model.prototype.dimension = function(name) {
-        if ( _.isObject(name) && name.parse )
-          return name;
-        // Return a dimension with given name
-        return _.find(this.dimensions, function(dim){return dim.name == name;});
-    };
-
-    cubes.Model.prototype.cube = function(name) {
-        if ( _.isObject(name) )
-          return name;
-        // Return a dimension with given name
-        return _.find(this.cubes, function(obj){return obj.name == name;});
-    };
-
-    cubes.Model.prototype.replace_cube = function(new_cube) {
-        if ( ! _.isObject(new_cube) ) 
-            throw "Must pass cube object as argument";
-        var idx = _.indexOf(this.cubes, function(c) { return c.name === new_cube.name; });
-        if ( idx != -1 ) 
-            this.cubes[idx] = new_cube;
-    }
-
-    cubes.Cube = function(obj, model) {
-        this.url = null;
-        this.parse(obj, model);
-    };
-
-    cubes.Cube.prototype.parse = function(desc, model) {
+    cubes.Cube = function(metadata) {
         var i, obj;
 
-        this.name = desc.name;
-        !desc.label || (this.label = desc.label);
-        !desc.description || (this.description = desc.description);
-        !desc.key || (this.key = desc.key);
-        !desc.info || (this.info = desc.info);
-        !desc.category || (this.category = desc.category);
+        this.name = metadata.name;
+        !metadata.label || (this.label = metadata.label);
+        !metadata.description || (this.description = metadata.description);
+        !metadata.key || (this.key = metadata.key);
+        !metadata.info || (this.info = metadata.info);
+        !metadata.category || (this.category = metadata.category);
 
-        this.measures = _.map(desc.measures || [], function(m) { return new cubes.Attribute(m); });
-        this.details = _.map(desc.details || [], function(m) { return new cubes.Attribute(m); });
+        this.measures = _.map(metadata.measures || [], function(m) { return new cubes.Measure(m); });
+        this.aggregates = _.map(metadata.aggregates || [], function(m) { return new cubes.MeasureAggregate(m); });
+        this.details = _.map(metadata.details || [], function(m) { return new cubes.Attribute(m); });
 
-        this.dimensions = _.map(desc.dimensions || [], function(dim) {return typeof(dim) === 'string' ? model.dimension(dim) : model.dimension(dim.name);} );
-
-        this._is_complete = ((this.measures.length > 0 || this.aggregates.length > 0) && this.dimensions.length > 0);
-    };
-
-    cubes.Cube.prototype.is_complete = function() {
-      return this._is_complete;
+        this.dimensions = _.map(metadata.dimensions || [], function(dim) {return new cubes.Dimension(dim);} );
     };
 
     cubes.Cube.prototype.dimension = function(name) {
@@ -287,45 +235,45 @@
         return _.find(this.dimensions, function(obj){return obj.name === name;});
     };
 
-    cubes.Cube.prototype.measure_info = function() {
-        return this.aggregates;
-    };
+    /*
+     * Dimension
+     * =========
+     */
 
-    cubes.Dimension = function(obj){
-        this.parse(obj);
-    };
-
-    cubes.Dimension.prototype.parse = function(desc) {
+    cubes.Dimension = function(md){
         var dim = this;
         var i;
 
-        dim.name = desc.name;
-        !desc.label || (dim.label = desc.label);
-        !desc.description || (dim.description = desc.description);
-        !desc.default_hierarchy_name || (dim.default_hierarchy_name = desc.default_hierarchy_name);
-        !desc.info || (dim.info = desc.info);
+        dim.name = md.name;
+        !md.label || (dim.label = md.label);
+        !md.description || (dim.description = md.description);
+        !md.default_hierarchy_name || (dim.default_hierarchy_name = md.default_hierarchy_name);
+        !md.info || (dim.info = md.info);
+        !md.role || (dim.role = md.role);
+        !md.cardinality || (dim.cardinality = md.cardinality);
 
         dim.levels = [];
 
-        if(desc.levels) {
-            for(i in desc.levels) {
-                var level = new cubes.Level(dim.name, desc.levels[i]);
+        if(md.levels) {
+            for(i in md.levels) {
+                var level = new cubes.Level(dim.name, md.levels[i]);
                 dim.levels.push(level);
             }
         }
 
         this.hierarchies = {};
 
-        if(desc.hierarchies) {
-            for(i in desc.hierarchies) {
-                var hier = new cubes.Hierarchy(desc.hierarchies[i], this);
+        if(md.hierarchies) {
+            for(i in md.hierarchies) {
+                var hier = new cubes.Hierarchy(md.hierarchies[i], this);
                 dim.hierarchies[hier.name] = hier;
             }
         }
 
         // if no default_hierarchy_name defined, use first hierarchy's name.
-        if ( ! dim.default_hierarchy_name && desc.hierarchies && desc.hierarchies.length > 0 ) {
-          dim.default_hierarchy_name = desc.hierarchies[0].name;
+        if ( ! dim.default_hierarchy_name && md.hierarchies
+                    && md.hierarchies.length > 0 ) {
+          dim.default_hierarchy_name = md.hierarchies[0].name;
         }
     };
 
@@ -363,6 +311,11 @@
             return this.hierarchies[this.default_hierarchy_name];
     };
 
+    /*
+     * Hierarchy
+     * ---------
+     */
+
     cubes.Hierarchy = function(obj, dim) {
         this.parse(obj, dim);
     };
@@ -389,6 +342,11 @@
         return this.label || this.name;
     };
 
+    /*
+     * Level
+     * -----
+     */
+
     cubes.Level = function(dimension_name, obj){
         this.parse(dimension_name, obj);
     };
@@ -405,6 +363,8 @@
         level._key = desc.key;
         level._label_attribute = desc.label_attribute;
         level._order_attribute = desc.order_attribute;
+        !desc.role || (level.role = desc.role);
+        !desc.cardinality || (level.cardinality = desc.cardinality);
 
         level.attributes = [];
 
@@ -459,7 +419,37 @@
     };
 
 
+    /*
+     * Attributes, measures and measure aggregates
+     * -------------------------------------------
+     * */
+
     cubes.Attribute = function(obj){
+        this.ref = obj.ref;
+        this.name = obj.name;
+        this.label = obj.label;
+        this.order = obj.order;
+        this.info = (obj.info || {});
+        this.description = obj.description;
+        this.format = obj.format;
+        this.missing_value = obj.missing_value;
+        this.locales = obj.locales;
+    };
+
+    cubes.Measure = function(obj){
+        this.ref = obj.ref;
+        this.name = obj.name;
+        this.label = obj.label;
+        this.order = obj.order;
+        this.info = (obj.info || {});
+        this.description = obj.description;
+        this.format = obj.format;
+        this.missing_value = obj.missing_value;
+        if (obj.aggregates) {
+            this.aggregates = obj.aggregates;
+        }
+    };
+    cubes.MeasureAggregate = function(obj){
         this.ref = obj.ref;
         this.name = obj.name;
         this.label = obj.label;
@@ -468,10 +458,17 @@
         this.info = (obj.info || {});
         this.description = obj.description;
         this.format = obj.format;
-        if ( obj.aggregations ) {
-          this.aggregations = obj.aggregations;
-        }
+        this.missing_value = obj.missing_value;
+
+        this.function = obj.function;
+        this.measure = obj.measure;
     };
+
+
+    /*
+     * Browser 
+     * =======
+     * */
 
     cubes.Browser = function(server, cube){
         this.cube = cube;
