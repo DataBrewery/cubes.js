@@ -463,7 +463,7 @@
         this.format = obj.format;
         this.missing_value = obj.missing_value;
 
-        this.function = obj.function;
+        this["function"] = obj["function"];
         this.measure = obj.measure;
     };
 
