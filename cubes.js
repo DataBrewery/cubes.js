@@ -223,6 +223,7 @@
         !metadata.key || (this.key = metadata.key);
         !metadata.info || (this.info = metadata.info);
         !metadata.category || (this.category = metadata.category);
+        !metadata.features || (this.features = metadata.features);
 
         this.measures = _.map(metadata.measures || [], function(m) { return new cubes.Measure(m); });
         this.aggregates = _.map(metadata.aggregates || [], function(m) { return new cubes.MeasureAggregate(m); });
