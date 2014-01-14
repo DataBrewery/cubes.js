@@ -7,7 +7,7 @@ var suite = vows.describe('Drilldown tests');
 
 suite.addBatch({
   'cuts on loaded model': {
-    topic: (new cubes.Model(JSON.parse(fs.readFileSync('test/model.json')))),
+    topic: new cubes.Cube(JSON.parse(fs.readFileSync('test/server_responses/cube/important_cube_2/model.json'))),
     'basic toString round trip': function(model) { 
       var dd = new cubes.Drilldown(model.dimension('daily_date'), null, 'year');
       assert.strictEqual("daily_date@ymd:year", cubes.drilldown_from_string(model, dd.toString()).toString());

@@ -163,7 +163,7 @@
         options.url = self.url + 'cubes';
 
         options.success = function(resp, status, xhr) {
-            self._cube_list = resp
+            self._cube_list = resp;
 
             if (callback)
                 callback(self._cube_list);
@@ -479,7 +479,7 @@
         this.server = server;
     };
 
-    cubes.Browser.prototype.full_cube = function(dimension) {
+    cubes.Browser.prototype.full_cube = function() {
         return new cubes.Cell(this.cube);
     };
 

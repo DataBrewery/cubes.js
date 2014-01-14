@@ -1,0 +1,23 @@
+{
+	"cubes": [{
+		"info": {
+			"category": "Acquisition",
+			"measurement_type": "money",
+			"datasource": "mydatabase"
+		},
+		"label": "Acquisitions",
+		"name": "important_cube"
+	}, {
+		"info": {
+			"category": "Conversion",
+			"measurement_type": "percent",
+			"datasource": "mydatabase"
+		},
+		"label": "Conversions",
+		"name": "important_cube_2"
+	}],
+	"name": "datamart",
+	"label": "Data Mart",
+	"locales": [],
+	"description": "Business measures"
+}
