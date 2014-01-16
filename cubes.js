@@ -126,6 +126,15 @@
         return this.ajaxRequest(params);
     };
 
+    /**
+     * Connect to the Slicer server.
+     *
+     * @param {url} Slicer server URL
+     * @param {callback} Function called on successfull connect
+     * @param {errCallback} Function called on error
+     *     one line.
+     */
+    
     cubes.Server.prototype.connect = function(url, callback, errCallback) {
         var self = this;
 
@@ -133,11 +142,13 @@
 
         var options = {dataType : 'json', type : "GET"};
 
-        options.url = self.url + 'version';
+        options.url = self.url + 'info';
 
         options.success = function(resp, status, xhr) {
-            self.server_version = resp.server_version;
+            self.server_version = resp.cubes_version;
+            self.cubes_version = resp.cubes_version;
             self.api_version = resp.api_version;
+            self.info = resp;
             self.load_cube_list(callback, errCallback);
         };
 
