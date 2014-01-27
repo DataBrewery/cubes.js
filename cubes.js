@@ -658,7 +658,7 @@
       name: cubes.SPLIT_DIMENSION_STRING, 
       label: 'Matches Filters', 
       hierarchies: [ { name: 'default', levels: [ cubes.SPLIT_DIMENSION_STRING ] } ],
-      levels: [ { name: cubes.SPLIT_DIMENSION_STRING} ] 
+      levels: [ { name: cubes.SPLIT_DIMENSION_STRING, attributes: [{name: cubes.SPLIT_DIMENSION_STRING}], label: 'Matches Filters' } ] 
     });
 
     cubes._split_with_negative_lookbehind = function(input, regex, lb) {
