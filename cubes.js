@@ -654,6 +654,13 @@
     cubes.NULL_PART_STRING = '__null__';
     cubes.SPLIT_DIMENSION_STRING = '__within_split__';
 
+    cubes.SPLIT_DIMENSION = new cubes.Dimension({
+      name: cubes.SPLIT_DIMENSION_STRING, 
+      label: 'Matches Filters', 
+      hierarchies: [ { name: 'default', levels: [ cubes.SPLIT_DIMENSION_STRING ] } ],
+      levels: [ { name: cubes.SPLIT_DIMENSION_STRING} ] 
+    });
+
     cubes._split_with_negative_lookbehind = function(input, regex, lb) {
       var string = input;
       var match;
@@ -742,7 +749,10 @@
             level = match[3] || null;
         var dimension = cube_or_model.dimension(dim_name);
         if ( ! dimension )
-          return null;
+          if ( dim_name === cubes.SPLIT_DIMENSION_STRING ) 
+            dimension = cubes.SPLIT_DIMENSION;
+          else 
+            return null;
         return new cubes.Drilldown(dimension, hierarchy, level);
     };
 

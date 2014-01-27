@@ -37,7 +37,7 @@ function AjaxHandler(url, settings) {
 
 suite.addBatch({
   'Server': {
-    topic: function() { var s = new cubes.Server(AjaxHandler); console.log(s.connect("http://foo.com/cubes", this.callback)); },
+    topic: function() { var s = new cubes.Server(AjaxHandler); s.connect("http://foo.com/cubes", this.callback); },
     'url is normalized': function(err, topic) { console.log(topic); assert.equal(topic.url, "http://foo.com/cubes/"); },
     'Browser': {
           topic: function(s) { return new cubes.Browser(s, s.get_cube(s._cube_list[0].name, this.callback)); },

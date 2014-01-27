@@ -20,6 +20,10 @@ suite.addBatch({
       var dd = cubes.drilldown_from_string(model, "daily_date@ymd");
       assert.strictEqual("daily_date@ymd:year", cubes.drilldown_from_string(model, dd.toString()).toString());
     },
+    'split drilldown always works': function(model) {
+      var dd = cubes.drilldown_from_string(model, cubes.SPLIT_DIMENSION_STRING);
+      assert.strictEqual(cubes.SPLIT_DIMENSION_STRING + "@default:" + cubes.SPLIT_DIMENSION_STRING, cubes.drilldown_from_string(model, dd.toString()).toString());
+    },
     'keys in result cell': function(model) { 
       var dd = new cubes.Drilldown(model.dimension('daily_date'), null, 'year');
       assert.deepEqual(["daily_date.year"], dd.keysInResultCell());
