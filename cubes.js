@@ -266,6 +266,7 @@
         !md.info || (dim.info = md.info);
         !md.role || (dim.role = md.role);
         !md.cardinality || (dim.cardinality = md.cardinality);
+        !md.nonadditive || (dim.nonadditive = md.nonadditive);
 
         dim.levels = [];
 
@@ -460,6 +461,7 @@
         this.description = obj.description;
         this.format = obj.format;
         this.missing_value = obj.missing_value;
+        this.nonadditive = obj.nonadditive;
         if (obj.aggregates) {
             this.aggregates = obj.aggregates;
         }
@@ -474,6 +476,7 @@
         this.description = obj.description;
         this.format = obj.format;
         this.missing_value = obj.missing_value;
+        this.nonadditive = obj.nonadditive;
 
         this["function"] = obj["function"];
         this.measure = obj.measure;
