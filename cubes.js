@@ -381,6 +381,7 @@
         level._order_attribute = desc.order_attribute;
         !desc.role || (level.role = desc.role);
         !desc.cardinality || (level.cardinality = desc.cardinality);
+        level.nonadditive = desc.nonadditive;
 
         level.attributes = [];
 
