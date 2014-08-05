@@ -669,10 +669,13 @@
       var string = input;
       var match;
       var splits = [];
+      
+      
       while ((match = regex.exec(string)) != null) {
           if ( string.substr(match.index - lb.length, lb.length) != lb ) {
             splits.push(string.substring(0, match.index));
-            string = string.substring(Math.min(match.index + match[0].length, string.length), string.length);
+            string = string.substring(Math.min(match.index + match[0].length, string.length));
+            regex.lastIndex = 0;
           }
           else {
             // match has the lookbehind, must exclude
