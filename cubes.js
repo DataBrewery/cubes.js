@@ -91,6 +91,12 @@
         this._cubes = {}
     };
 
+    cubes.Server.prototype.cubeinfo = function(cubename) {
+    	cubeinfos = $.grep(this._cube_list, function (ci) { return ci.name == cubename });
+    	if (cubeinfos.length != 1) throw "Found " + cubeinfos.length + " cubes with name '" + cubename + "' in the cube list";
+    	return cubeinfos[0];
+    };
+    
     cubes.Server.prototype.ajaxRequest = function(settings) {
         throw "Must implement ajaxRequest for server to process jquery-style $.ajax settings object";
     };
@@ -512,8 +518,22 @@
         if (args.page) http_args.page = args.page;
         if (args.pagesize) http_args.pagesize = args.pagesize;
 
-        this.server.query("aggregate", this.cube, args, callback);
+        return this.server.query("aggregate", this.cube, args, callback);
     };
+    
+    cubes.Browser.prototype.facts = function(args, callback) {
+        if ( ! args )
+          args = {};
+
+        var http_args = {};
+
+        if (args.cut) http_args.cut = args.cut.toString();
+        if (args.order) http_args.order = args.order.toString();
+        if (args.page) http_args.page = args.page;
+        if (args.pagesize) http_args.pagesize = args.pagesize;
+
+        return this.server.query("facts", this.cube, args, callback);
+    };    
 
     cubes.Drilldown = function(dimension, hierarchy, level) {
         if ( ! _.isObject(dimension) )
@@ -679,6 +699,7 @@
           }
           else {
             // match has the lookbehind, must exclude
+        	// TODO: I suspect an infinite loop on this branch as the string is not modified
           }
       }
       splits.push(string);
